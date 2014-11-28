@@ -5,17 +5,34 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using KSP;
+using KSPAssets;
+
 
 namespace KronalUtils
 {
-    class KRSVesselShot
+    class KVrVesselShot
     {
+        //KSPAssets.AssetDefinition[] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
+        /*
+        public Dictionary<string, string> KVrShaders = new Dictionary<string, string> {
+            { "MaterialFXAA", KronalUtils.Properties.Resources.ShaderFXAA },
+            { "MaterialColorAdjust", KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust") },
+            { "MaterialEdgeDetect", KSP.IO.File.ReadAllText<KVrVesselShot>("edn2") },
+            { "MaterialBluePrint", KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint") },
+        };*/
+        //public KVrUtilsCore KVVCore = new KVrUtilsCore();
+        public Dictionary<string, string> KVrShaders = new Dictionary<string, string> {
+            { "MaterialFXAA", "KVV/Hidden/SlinDev/Desktop/PostProcessing/FXAA" },
+            { "MaterialColorAdjust", "KVV/Color Adjust" },
+            { "MaterialEdgeDetect", "KVV/Hidden/Edge Detect Normals2" },
+        };
         public ShaderMaterial MaterialFXAA = new ShaderMaterial(KronalUtils.Properties.Resources.ShaderFXAA);
-        public ShaderMaterial MaterialColorAdjust = new ShaderMaterial(KSP.IO.File.ReadAllText<KRSVesselShot>("coloradjust"));
-        public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial(KSP.IO.File.ReadAllText<KRSVesselShot>("edn2"));
-        public ShaderMaterial MaterialBluePrint = new ShaderMaterial(KSP.IO.File.ReadAllText<KRSVesselShot>("blueprint"));
+        public ShaderMaterial MaterialColorAdjust = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust"));
+        public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("edn2"));
+        //public ShaderMaterial MaterialBluePrint = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint"));/**/
         private List<string> Shaders = new List<string>() { "edn", "cutoff", "diffuse", "bumped", "bumpedspecular", "specular", "unlit", "emissivespecular", "emissivebumpedspecular" };
         private Dictionary<string, Material> Materials;
+        public string editorOrientation = "";//SPH|VAB
         public readonly IDictionary<string, ShaderMaterial> Effects;
         public int calculatedWidth = 1;
         public int calculatedHeight = 1;
@@ -31,8 +48,6 @@ namespace KronalUtils
         
         private Camera[] cameras;
         private RenderTexture rt;
-        //private int maxWidth = 4096;
-        //private int maxHeight = 4096;
         private int maxWidth = 1024;
         private int maxHeight = 1024;
         private Bounds shipBounds;
@@ -84,7 +99,7 @@ namespace KronalUtils
             }
         }
 
-        public KRSVesselShot()
+        public KVrVesselShot()
         {
             SetupCameras();
             this.Config = new VesselViewConfig();
@@ -93,10 +108,10 @@ namespace KronalUtils
             this.Effects = new Dictionary<string, ShaderMaterial>() {
                 {"Color Adjust",MaterialColorAdjust},
                 {"Edge Detect", MaterialEdgeDetect},
-                {"Blue Print", MaterialBluePrint},
+                //{"Blue Print", MaterialBluePrint},
                 {"FXAA", MaterialFXAA}
             };
-            this.Effects["Blue Print"].Enabled = false;
+            //this.Effects["Blue Print"].Enabled = false;
             uiFloatVals["bgR"]=uiFloatVals["bgR_"];
             uiFloatVals["bgG"]=uiFloatVals["bgG_"];
             uiFloatVals["bgB"]=uiFloatVals["bgB_"];
@@ -108,13 +123,19 @@ namespace KronalUtils
             GameEvents.onPartRemove.Add(PartModified);
         }
 
-        ~KRSVesselShot()
+        ~KVrVesselShot()
         {
             GameEvents.onPartAttach.Remove(PartModified);
             GameEvents.onPartRemove.Remove(PartModified);
         }
+        public void setFacility()
+        {   
+            editorOrientation = (EditorLogic.fetch.ship.shipFacility == EditorFacility.SPH ? "SPH" : "VAB");
+        }
+<<<<<<< HEAD:src/KVrVesselShot.cs
+=======
 
-        // Sets up Orthographic and Perspective camera.
+>>>>>>> Includes Patches for hotfix.  0.0.4 (0.25) Full Update GameData.zip:src/KRSVesselShot.cs
         private void SetupCameras()
         {
             this.cameras = new Camera[2];
@@ -134,17 +155,24 @@ namespace KronalUtils
         public void RotateShip(float degrees)
         {
             Vector3 rotateAxis;
-            
-            if (HighLogic.LoadedScene == GameScenes.SPH)
+            if (editorOrientation != "SPH" && editorOrientation != "VAB") { setFacility(); }
+
+            //if (HighLogic.LoadedScene == GameScenes.SPH)
+            if (editorOrientation == "SPH")
             {
+#if DEBUG
                 Debug.Log(string.Format("Rotating in SPH: {0}", degrees));
+#endif
                 //rotateAxis = EditorLogic.startPod.transform.forward;
                 rotateAxis = EditorLogic.RootPart.transform.forward;
             }
             else
             {
+#if DEBUG
                 Debug.Log(string.Format("Rotating in VAB: {0}", degrees));
-                rotateAxis = EditorLogic.startPod.transform.up;
+#endif
+                //rotateAxis = EditorLogic.startPod.transform.up;
+                rotateAxis = EditorLogic.RootPart.transform.up;
             }
 
             this.direction = Quaternion.AngleAxis(degrees, rotateAxis) * this.direction;
@@ -156,12 +184,15 @@ namespace KronalUtils
             {
                 try
                 {
-                    var mat = new Material(KRSUtils.GetResourceString(shaderFilename));
+                    var mat = new Material(KVrUtils.GetResourceString(shaderFilename));
                     Materials[mat.shader.name] = mat;
                 }
                 catch
                 {
-                    MonoBehaviour.print("[ERROR] " + this.GetType().Name + " : Failed to load " + shaderFilename);
+                    //MonoBehaviour.print("[ERROR] " + this.GetType().Name + " : Failed to load " + shaderFilename);
+#if DEBUG
+                    Debug.Log(string.Format("KVV: LoadShaders [ERROR] " + this.GetType().Name + " : Failed to load " + shaderFilename));
+#endif
                 }
             }
         }
@@ -178,15 +209,15 @@ namespace KronalUtils
                 Material mat;
                 if (Materials.TryGetValue(mr.material.shader.name, out mat))
                 {
-                    if (!MeshRendererLibrary.ContainsKey(mr))
-                    {
+                    if (!MeshRendererLibrary.ContainsKey(mr)) {
                         MeshRendererLibrary.Add(mr, mr.material.shader);
                     }
                     mr.material.shader = mat.shader;
-                }
-                else
-                {
-                    MonoBehaviour.print("[Warning] " + this.GetType().Name + "No replacement for " + mr.material.shader + " in " + part + "/*/" + mr);
+                } else {
+                    //MonoBehaviour.print("[Warning] " + this.GetType().Name + "No replacement for " + mr.material.shader + " in " + part + "/*/" + mr);
+#if DEBUG
+                    Debug.Log(string.Format("KVV: LoadShaders [Warning] " + this.GetType().Name + "No replacement for " + mr.material.shader + " in " + part + "/*/" + mr));
+#endif
                 }
             }
             if (!PartShaderLibrary.ContainsKey(part))
@@ -215,7 +246,8 @@ namespace KronalUtils
                 }
             }            
         }
-
+        
+        //private void PartModified(Part data)
         private void PartModified(GameEvents.HostTargetAction<Part, Part> data)
         {
             UpdateShipBounds();
@@ -256,24 +288,23 @@ namespace KronalUtils
         {
             if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
-	            foreach (Part p in EditorLogic.fetch.ship)
-	            {
-	                ReplacePartShaders(p);
-	            }
+                foreach (Part p in EditorLogic.fetch.ship)
+                {
+                    ReplacePartShaders(p);
+                }
             }
 
             var minusDir = -direction;
             this.Camera.clearFlags = CameraClearFlags.SolidColor;
-            if(this.Effects["Blue Print"].Enabled){
-                this.Camera.backgroundColor = new Color(1f, 1f, 1f, 0.0f);}
-            else{
-                this.Camera.backgroundColor = new Color(uiFloatVals["bgR"], uiFloatVals["bgG"], uiFloatVals["bgB"], uiFloatVals["bgA"]);
-            }
-
+            this.Camera.backgroundColor = new Color(uiFloatVals["bgR"], uiFloatVals["bgG"], uiFloatVals["bgB"], uiFloatVals["bgA"]);
             this.Camera.transform.position = this.shipBounds.center;
 
-            // This sets the horizon before the camera looks to vehicle center.
+<<<<<<< HEAD:src/KVrVesselShot.cs
+            //if (HighLogic.LoadedScene == GameScenes.SPH)
+            if (editorOrientation == "SPH")
+=======
             if (HighLogic.LoadedScene == GameScenes.SPH)
+>>>>>>> Includes Patches for hotfix.  0.0.4 (0.25) Full Update GameData.zip:src/KRSVesselShot.cs
             {
                 this.Camera.transform.rotation = Quaternion.AngleAxis(90, Vector3.right);
             }
@@ -281,12 +312,9 @@ namespace KronalUtils
             {
                 this.Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.right);
             }
-            // this.Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.up); // original 
 
             // Apply angle Vector to camera.
             this.Camera.transform.Translate(minusDir * this.Camera.nearClipPlane);
-            // this.Camera.transform.Translate(Vector3.Scale(minusDir, this.shipBounds.extents) + minusDir * this.Camera.nearClipPlane); // original 
-            // Deckblad: There was a lot of math here when all we needed to do is establish the rotation of the camera.
 
             // Face camera to vehicle.
             this.Camera.transform.LookAt(this.shipBounds.center);
@@ -302,23 +330,14 @@ namespace KronalUtils
 
             // Find distance from vehicle.
             float positionOffset = (this.shipBounds.size.magnitude - this.position.z) / (2f * Mathf.Tan(Mathf.Deg2Rad * this.Camera.fieldOfView / 2f));
-            // float positionOffset = (height - this.position.z) / (2f * Mathf.Tan(Mathf.Deg2Rad * this.Camera.fieldOfView / 2f)) - depth * 0.5f; // original 
-            // Use magnitude of bounds instead of height and remove vehicle bounds depth for uniform distance from vehicle. Height and depth of vehicle change in relation to the camera as we move around the vehicle.
 
-            // Translate and Zoom camera
             this.Camera.transform.Translate(new Vector3(this.position.x, this.position.y, -positionOffset));
-
-            // Get distance from camera to ship. Apply to farClipPlane
             float distanceToShip = Vector3.Distance(this.Camera.transform.position, this.shipBounds.center);
-
-            // Set far clip plane to just past size of vehicle.
             this.Camera.farClipPlane = distanceToShip + this.Camera.nearClipPlane + depth * 2 + 1; // 1 for the first rotation vector
-            // this.Camera.farClipPlane = Camera.nearClipPlane + positionOffset + this.position.magnitude + depth; // original
             
             if (this.Orthographic)
             {
                 this.Camera.orthographicSize = (Math.Max(height, width) - this.position.z) / 2f; // Use larger of ship height or width.
-                // this.Camera.orthographicSize = (height - this.position.z) / 2f; // original
             }
 
             bool isSaving = false;
@@ -334,7 +353,6 @@ namespace KronalUtils
                 this.calculatedHeight = (int)(this.calculatedWidth / tmpAspect);
             }
 
-            // If we're saving, use full resolution.
             if (imageWidth <= 0 || imageHeight <= 0)
             {
                 // Constrain image to max size with respect to aspect
@@ -377,11 +395,11 @@ namespace KronalUtils
             }
             if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
-	            foreach (Part p in EditorLogic.fetch.ship)
-	            {
-	                RestorePartShaders(p);
-	            }
-	        }
+                foreach (Part p in EditorLogic.fetch.ship)
+                {
+                    RestorePartShaders(p);
+                }
+            }
             if (uiBoolVals["saveTextureEvent"])
             {
                 Resources.UnloadUnusedAssets();//fix memory leak?
@@ -394,7 +412,10 @@ namespace KronalUtils
             int fileHeight = this.rt.height;
 #if DEBUG
             Debug.Log(string.Format("KVV: SIZE: {0} x {1}", fileWidth, fileHeight));
+<<<<<<< HEAD:src/KVrVesselShot.cs
 #endif
+=======
+>>>>>>> Includes Patches for hotfix.  0.0.4 (0.25) Full Update GameData.zip:src/KRSVesselShot.cs
 
             Texture2D screenShot = new Texture2D(fileWidth, fileHeight, TextureFormat.ARGB32, false);
             
@@ -412,8 +433,9 @@ namespace KronalUtils
             do{
                 ++file_inc;
                 filenamebase = ShipNameFileSafe + "_" + file_inc.ToString() + ".png";
-                filename = Path.Combine(System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(), "Screenshots" + Path.DirectorySeparatorChar + filenamebase);
-            }while(File.Exists(filename));
+                //filename = Path.Combine(System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(), "Screenshots" + Path.DirectorySeparatorChar + filenamebase);
+                filename = Path.Combine(KVrUtilsCore.ModExport() + Path.DirectorySeparatorChar, filenamebase);
+            } while(File.Exists(filename));
             System.IO.File.WriteAllBytes(filename, bytes);
 
             Debug.Log(string.Format("KVV: Took screenshot to: {0}", filename));
@@ -456,9 +478,14 @@ namespace KronalUtils
                 return;
             }
 
+<<<<<<< HEAD:src/KVrVesselShot.cs
             //var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
             var dir = EditorLogic.RootPart.transform.TransformDirection(this.direction);
             
+=======
+            var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
+
+>>>>>>> Includes Patches for hotfix.  0.0.4 (0.25) Full Update GameData.zip:src/KRSVesselShot.cs
             storedShadowDistance = QualitySettings.shadowDistance;
             QualitySettings.shadowDistance = (this.uiFloatVals["shadowVal"] < 0f ? 0f : this.uiFloatVals["shadowVal"]);
             
@@ -468,7 +495,7 @@ namespace KronalUtils
             
         }
 
-        internal Texture Texture()//not used?!
+        internal Texture Texture()
         {
             
             //if (!((EditorLogic.startPod) && (this.Ship != null)))

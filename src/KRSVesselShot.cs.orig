@@ -16,7 +16,6 @@ namespace KronalUtils
         public ShaderMaterial MaterialBluePrint = new ShaderMaterial(KSP.IO.File.ReadAllText<KRSVesselShot>("blueprint"));
         private List<string> Shaders = new List<string>() { "edn", "cutoff", "diffuse", "bumped", "bumpedspecular", "specular", "unlit", "emissivespecular", "emissivebumpedspecular" };
         private Dictionary<string, Material> Materials;
-        public string editorOrientation = "";//SPH|VAB
         public readonly IDictionary<string, ShaderMaterial> Effects;
         public int calculatedWidth = 1;
         public int calculatedHeight = 1;
@@ -32,8 +31,6 @@ namespace KronalUtils
         
         private Camera[] cameras;
         private RenderTexture rt;
-        //private int maxWidth = 4096;
-        //private int maxHeight = 4096;
         private int maxWidth = 1024;
         private int maxHeight = 1024;
         private Bounds shipBounds;
@@ -114,10 +111,8 @@ namespace KronalUtils
             GameEvents.onPartAttach.Remove(PartModified);
             GameEvents.onPartRemove.Remove(PartModified);
         }
-        public void setFacility()
-        {   
-            editorOrientation = (EditorLogic.fetch.ship.shipFacility == EditorFacility.SPH ? "SPH" : "VAB");
-        }
+
+        // Sets up Orthographic and Perspective camera.
         private void SetupCameras()
         {
             this.cameras = new Camera[2];
@@ -137,19 +132,17 @@ namespace KronalUtils
         public void RotateShip(float degrees)
         {
             Vector3 rotateAxis;
-            if (editorOrientation != "SPH" && editorOrientation != "VAB") { setFacility(); }
             
-            //if (HighLogic.LoadedScene == GameScenes.SPH)
-            if (editorOrientation == "SPH")
+            if (HighLogic.LoadedScene == GameScenes.SPH)
             {
                 Debug.Log(string.Format("Rotating in SPH: {0}", degrees));
-                rotateAxis = EditorLogic.startPod.transform.forward;
+                //rotateAxis = EditorLogic.startPod.transform.forward;
+                rotateAxis = EditorLogic.RootPart.transform.forward;
             }
             else
             {
                 Debug.Log(string.Format("Rotating in VAB: {0}", degrees));
-                //rotateAxis = EditorLogic.startPod.transform.up;
-                rotateAxis = EditorLogic.RootPart.transform.up;
+                rotateAxis = EditorLogic.startPod.transform.up;
             }
 
             this.direction = Quaternion.AngleAxis(degrees, rotateAxis) * this.direction;
@@ -259,9 +252,12 @@ namespace KronalUtils
 
         public void GenTexture(Vector3 direction, int imageWidth = -1, int imageHeight = -1)
         {
-            foreach (Part p in EditorLogic.fetch.ship)
+            if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
-                ReplacePartShaders(p);
+	            foreach (Part p in EditorLogic.fetch.ship)
+	            {
+	                ReplacePartShaders(p);
+	            }
             }
 
             var minusDir = -direction;
@@ -274,8 +270,8 @@ namespace KronalUtils
 
             this.Camera.transform.position = this.shipBounds.center;
 
-            //if (HighLogic.LoadedScene == GameScenes.SPH)
-            if (editorOrientation == "SPH")
+            // This sets the horizon before the camera looks to vehicle center.
+            if (HighLogic.LoadedScene == GameScenes.SPH)
             {
                 this.Camera.transform.rotation = Quaternion.AngleAxis(90, Vector3.right);
             }
@@ -363,7 +359,6 @@ namespace KronalUtils
             if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
                 this.rt = RenderTexture.GetTemporary(fileWidth, fileHeight, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
-                //this.rt = RenderTexture.GetTemporary(imageWidth, imageHeight, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
                 this.Camera.targetTexture = this.rt;
                 this.Camera.depthTextureMode = DepthTextureMode.DepthNormals;
                 this.Camera.Render();
@@ -378,34 +373,31 @@ namespace KronalUtils
                     }
                 }
             }
-
-            foreach (Part p in EditorLogic.fetch.ship)
+            if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
-                RestorePartShaders(p);
+	            foreach (Part p in EditorLogic.fetch.ship)
+	            {
+	                RestorePartShaders(p);
+	            }
+	        }
+            if (uiBoolVals["saveTextureEvent"])
+            {
+                Resources.UnloadUnusedAssets();//fix memory leak?
             }
         }
 
         private void SaveTexture(String fileName)
         {
-            //int fileWidth = (int)Math.Floor(this.rt.width * (uiFloatVals["imgPercent"] >= 1 ? uiFloatVals["imgPercent"] : 1f));
-            //int fileHeight = (int)Math.Floor(this.rt.height * (uiFloatVals["imgPercent"] >= 1 ? uiFloatVals["imgPercent"] : 1f));
             int fileWidth = this.rt.width;
             int fileHeight = this.rt.height;
 #if DEBUG
             Debug.Log(string.Format("KVV: SIZE: {0} x {1}", fileWidth, fileHeight));
-<<<<<<< 419436d54af1d3a18358b1c1e6fb8382bb23576e
-            //yield return new WaitForEndOfFrame();
-            //TextureFormat.ARGB32 for transparent
-            //Texture2D screenShot = new Texture2D(this.rt.width, this.rt.height, TextureFormat.RGB24, false);
-            //Texture2D screenShot = new Texture2D(this.rt.width, this.rt.height, TextureFormat.RGB24, true);
-=======
->>>>>>> 0.90 Patch
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> Pre-clean for fingerboxes merge
 
             Texture2D screenShot = new Texture2D(fileWidth, fileHeight, TextureFormat.ARGB32, false);
-            //Texture2D screenShot = new Texture2D(this.rt.width, this.rt.height, TextureFormat.ARGB32, true);
-
-            //Texture2D savedTexture = this.rt as Texture2D;
             
             var saveRt = RenderTexture.active;
             RenderTexture.active = this.rt;
@@ -426,6 +418,8 @@ namespace KronalUtils
             System.IO.File.WriteAllBytes(filename, bytes);
 
             Debug.Log(string.Format("KVV: Took screenshot to: {0}", filename));
+            screenShot = null;
+            bytes = null;
         }
         private static string MakeValidFileName(string name)
         {
@@ -434,7 +428,8 @@ namespace KronalUtils
             return System.Text.RegularExpressions.Regex.Replace(name, invalidRegStr, "_");
         }
         public void Execute() {
-            if (!((EditorLogic.startPod) && (this.Ship != null)))
+            //if (!((EditorLogic.startPod) && (this.Ship != null)))
+            if (!((EditorLogic.RootPart) && (this.Ship != null)))
             {
                 return;
             }
@@ -444,7 +439,8 @@ namespace KronalUtils
 
         public void Explode()
         {
-            if (!EditorLogic.startPod || this.Ship == null)
+            //if (!EditorLogic.startPod || this.Ship == null)
+            if (!EditorLogic.RootPart || this.Ship == null)
             {
                 return;
             }
@@ -455,27 +451,29 @@ namespace KronalUtils
 
         public void Update(int width = -1, int height = -1)
         {
-            if (!EditorLogic.startPod || this.Ship == null)
+            //if (!EditorLogic.startPod || this.Ship == null)
+            if (!EditorLogic.RootPart || this.Ship == null)
             {
                 return;
             }
 
-            var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
-
-            // I'm thinking to turn shadows off here...
+            //var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
+            var dir = EditorLogic.RootPart.transform.TransformDirection(this.direction);
+            
             storedShadowDistance = QualitySettings.shadowDistance;
             QualitySettings.shadowDistance = (this.uiFloatVals["shadowVal"] < 0f ? 0f : this.uiFloatVals["shadowVal"]);
             
             GenTexture(dir, width, height);
 
-            // And turning shadows back on here.
             QualitySettings.shadowDistance = storedShadowDistance;
             
         }
 
         internal Texture Texture()//not used?!
         {
-            if (!((EditorLogic.startPod) && (this.Ship != null)))
+            
+            //if (!((EditorLogic.startPod) && (this.Ship != null)))
+            if (!((EditorLogic.RootPart) && (this.Ship != null)))
             {
                 return null;
             }

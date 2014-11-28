@@ -103,15 +103,14 @@ namespace KronalUtils
             LoadShaders();
             UpdateShipBounds();
             
-
-            GameEvents.onPartAttach.Add(PartModified);
-            GameEvents.onPartRemove.Add(PartModified);
+            GameEvents.onPartAttach.Add(PartAttached);
+            GameEvents.onPartRemove.Add(PartRemoved);
         }
 
         ~KRSVesselShot()
         {
-            GameEvents.onPartAttach.Remove(PartModified);
-            GameEvents.onPartRemove.Remove(PartModified);
+            GameEvents.onPartAttach.Remove(PartAttached);
+            GameEvents.onPartRemove.Remove(PartRemoved);
         }
 
         // Sets up Orthographic and Perspective camera.
@@ -138,8 +137,7 @@ namespace KronalUtils
             if (HighLogic.LoadedScene == GameScenes.SPH)
             {
                 Debug.Log(string.Format("Rotating in SPH: {0}", degrees));
-                //rotateAxis = EditorLogic.startPod.transform.forward;
-                rotateAxis = EditorLogic.RootPart.transform.forward;
+                rotateAxis = EditorLogic.startPod.transform.forward;
             }
             else
             {
@@ -171,52 +169,28 @@ namespace KronalUtils
             var model = part.transform.Find("model");
             if (!model) return;
 
-            Dictionary<MeshRenderer, Shader> MeshRendererLibrary = new Dictionary<MeshRenderer,Shader>();
-
-            foreach (MeshRenderer mr in model.GetComponentsInChildren<MeshRenderer>())
+            foreach (var r in model.GetComponentsInChildren<MeshRenderer>())
             {
                 Material mat;
-                if (Materials.TryGetValue(mr.material.shader.name, out mat))
+                if (Materials.TryGetValue(r.material.shader.name, out mat))
                 {
-                    if (!MeshRendererLibrary.ContainsKey(mr))
-                    {
-                        MeshRendererLibrary.Add(mr, mr.material.shader);
-                    }
-                    mr.material.shader = mat.shader;
+                    r.material.shader = mat.shader;
                 }
                 else
                 {
-                    MonoBehaviour.print("[Warning] " + this.GetType().Name + "No replacement for " + mr.material.shader + " in " + part + "/*/" + mr);
+                    MonoBehaviour.print("[Warning] " + this.GetType().Name + "No replacement for " + r.material.shader + " in " + part + "/*/" + r);
                 }
             }
-            if (!PartShaderLibrary.ContainsKey(part))
-            {
-                PartShaderLibrary.Add(part, MeshRendererLibrary);
-            }
         }
-        
-        Dictionary<Part,Dictionary<MeshRenderer, Shader>> PartShaderLibrary = new Dictionary<Part,Dictionary<MeshRenderer,Shader>>();
 
-        private void RestorePartShaders(Part part)
+        private void PartAttached(GameEvents.HostTargetAction<Part, Part> data)
         {
-            var model = part.transform.Find("model");
-            if (!model) return;
-            
-            Dictionary<MeshRenderer,Shader> MeshRendererLibrary;
-            if (PartShaderLibrary.TryGetValue(part, out MeshRendererLibrary))
-            {
-                foreach (MeshRenderer mr in model.GetComponentsInChildren<MeshRenderer>())
-                {
-                    Shader OldShader;
-                    if (MeshRendererLibrary.TryGetValue(mr, out OldShader))
-                    {
-                        mr.material.shader = OldShader;
-                    }
-                }
-            }            
+            ReplacePartShaders(data.host);
+            ReplacePartShaders(data.target);
+            UpdateShipBounds();
         }
 
-        private void PartModified(GameEvents.HostTargetAction<Part, Part> data)
+        private void PartRemoved(GameEvents.HostTargetAction<Part, Part> data)
         {
             UpdateShipBounds();
         }
@@ -254,14 +228,6 @@ namespace KronalUtils
 
         public void GenTexture(Vector3 direction, int imageWidth = -1, int imageHeight = -1)
         {
-            if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
-            {
-	            foreach (Part p in EditorLogic.fetch.ship)
-	            {
-	                ReplacePartShaders(p);
-	            }
-            }
-
             var minusDir = -direction;
             this.Camera.clearFlags = CameraClearFlags.SolidColor;
             if(this.Effects["Blue Print"].Enabled){
@@ -361,6 +327,7 @@ namespace KronalUtils
             if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
                 this.rt = RenderTexture.GetTemporary(fileWidth, fileHeight, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                //this.rt = RenderTexture.GetTemporary(imageWidth, imageHeight, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
                 this.Camera.targetTexture = this.rt;
                 this.Camera.depthTextureMode = DepthTextureMode.DepthNormals;
                 this.Camera.Render();
@@ -375,28 +342,23 @@ namespace KronalUtils
                     }
                 }
             }
-            if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
-            {
-	            foreach (Part p in EditorLogic.fetch.ship)
-	            {
-	                RestorePartShaders(p);
-	            }
-	        }
-            if (uiBoolVals["saveTextureEvent"])
-            {
-                Resources.UnloadUnusedAssets();//fix memory leak?
-            }
         }
 
         private void SaveTexture(String fileName)
         {
+            //int fileWidth = (int)Math.Floor(this.rt.width * (uiFloatVals["imgPercent"] >= 1 ? uiFloatVals["imgPercent"] : 1f));
+            //int fileHeight = (int)Math.Floor(this.rt.height * (uiFloatVals["imgPercent"] >= 1 ? uiFloatVals["imgPercent"] : 1f));
             int fileWidth = this.rt.width;
             int fileHeight = this.rt.height;
-#if DEBUG
             Debug.Log(string.Format("KVV: SIZE: {0} x {1}", fileWidth, fileHeight));
-#endif
-
+            //yield return new WaitForEndOfFrame();
+            //TextureFormat.ARGB32 for transparent
+            //Texture2D screenShot = new Texture2D(this.rt.width, this.rt.height, TextureFormat.RGB24, false);
+            //Texture2D screenShot = new Texture2D(this.rt.width, this.rt.height, TextureFormat.RGB24, true);
             Texture2D screenShot = new Texture2D(fileWidth, fileHeight, TextureFormat.ARGB32, false);
+            //Texture2D screenShot = new Texture2D(this.rt.width, this.rt.height, TextureFormat.ARGB32, true);
+
+            //Texture2D savedTexture = this.rt as Texture2D;
             
             var saveRt = RenderTexture.active;
             RenderTexture.active = this.rt;
@@ -417,8 +379,6 @@ namespace KronalUtils
             System.IO.File.WriteAllBytes(filename, bytes);
 
             Debug.Log(string.Format("KVV: Took screenshot to: {0}", filename));
-            screenShot = null;
-            bytes = null;
         }
         private static string MakeValidFileName(string name)
         {
@@ -427,8 +387,7 @@ namespace KronalUtils
             return System.Text.RegularExpressions.Regex.Replace(name, invalidRegStr, "_");
         }
         public void Execute() {
-            //if (!((EditorLogic.startPod) && (this.Ship != null)))
-            if (!((EditorLogic.RootPart) && (this.Ship != null)))
+            if (!((EditorLogic.startPod) && (this.Ship != null)))
             {
                 return;
             }
@@ -438,8 +397,7 @@ namespace KronalUtils
 
         public void Explode()
         {
-            //if (!EditorLogic.startPod || this.Ship == null)
-            if (!EditorLogic.RootPart || this.Ship == null)
+            if (!EditorLogic.startPod || this.Ship == null)
             {
                 return;
             }
@@ -450,29 +408,27 @@ namespace KronalUtils
 
         public void Update(int width = -1, int height = -1)
         {
-            //if (!EditorLogic.startPod || this.Ship == null)
-            if (!EditorLogic.RootPart || this.Ship == null)
+            if (!EditorLogic.startPod || this.Ship == null)
             {
                 return;
             }
 
-            //var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
-            var dir = EditorLogic.RootPart.transform.TransformDirection(this.direction);
-            
+            var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
+
+            // I'm thinking to turn shadows off here...
             storedShadowDistance = QualitySettings.shadowDistance;
             QualitySettings.shadowDistance = (this.uiFloatVals["shadowVal"] < 0f ? 0f : this.uiFloatVals["shadowVal"]);
             
             GenTexture(dir, width, height);
 
+            // And turning shadows back on here.
             QualitySettings.shadowDistance = storedShadowDistance;
             
         }
 
         internal Texture Texture()//not used?!
         {
-            
-            //if (!((EditorLogic.startPod) && (this.Ship != null)))
-            if (!((EditorLogic.RootPart) && (this.Ship != null)))
+            if (!((EditorLogic.startPod) && (this.Ship != null)))
             {
                 return null;
             }
