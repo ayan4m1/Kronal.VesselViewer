@@ -24,7 +24,7 @@ namespace KronalUtils
         private KRSEditorAxis axis;
         private bool IsOnEditor()
         {
-            return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedSceneIsEditor);
+            return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedScene == GameScenes.SPH);
         }
 
         public void Awake()
@@ -37,14 +37,6 @@ namespace KronalUtils
             this.control.Config.onRevert += ConfigReverted;
 
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
-        }
-
-        private void Start()
-        {
-            if (KVVButton == null)
-            {
-                this.OnGUIAppLauncherReady();
-            }
         }
 
         private void ConfigApplied()
@@ -98,7 +90,9 @@ namespace KronalUtils
                                            Screen.height - Input.mousePosition.y);
             return this.windowSize.Contains(position);
         }
-        void setEditorLock()//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
+        /* Whenever we mouseover our window, we need to lock the editor so we don't pick up
+         * parts while dragging the window around */
+        void setEditorLock()//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs#L296
         {
             if (visible)
             {
@@ -112,8 +106,8 @@ namespace KronalUtils
                                                 | ControlTypes.EDITOR_PAD_PICK_PLACE
                                                 | ControlTypes.EDITOR_PAD_PICK_COPY
                                                 | ControlTypes.EDITOR_EDIT_STAGES
-                                                | ControlTypes.EDITOR_GIZMO_TOOLS
-                                                | ControlTypes.EDITOR_ROOT_REFLOW;
+                                                | ControlTypes.EDITOR_ROTATE_PARTS
+                                                | ControlTypes.EDITOR_OVERLAYS;
 
                     InputLockManager.SetControlLock(controlTypes, this.inputLockIdent);
                 }
@@ -133,13 +127,16 @@ namespace KronalUtils
         {
             switch (HighLogic.LoadedScene) {//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
                 case GameScenes.EDITOR:
+                case GameScenes.SPH:
                     break;
                 default:
+                    /* don't show window during scene changes */
                     return;
             }
             if (visible) 
             {
                 this.windowSize = GUILayout.Window(GetInstanceID(), this.windowSize, GUIWindow, "Kronal Vessel Viewer", HighLogic.Skin.window);
+                EditorLogic.softLock = this.windowSize.Contains(Event.current.mousePosition);//EditorLogic.softLock not supported anymore? this.windowSize is static not dynamic with drag & drop? what does this do?
             }
 
             if (Event.current.type == EventType.Repaint)
@@ -205,7 +202,7 @@ namespace KronalUtils
             {
                 this.control.position.y -= 0.1f;
             }
-            if (GUILayout.RepeatButton("ᴐ", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("ᴐ", GUILayout.Width(34) , GUILayout.Height(34))) //↶
             {
                 this.control.RotateShip(1f);
             }
@@ -251,8 +248,8 @@ namespace KronalUtils
             GUILayout.Space(3f);
             this.control.uiFloatVals["shadowValPercent"] = GUILayout.HorizontalSlider(this.control.uiFloatVals["shadowValPercent"], 0f, 300f, GUILayout.Width(153f));
             GUILayout.Space(1f);
-            GUILayout.Label(this.control.uiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));
-            this.control.uiFloatVals["shadowVal"] = this.control.uiFloatVals["shadowValPercent"] * 1000f;
+            GUILayout.Label(this.control.uiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));//GUILayout.Width(50f),
+            this.control.uiFloatVals["shadowVal"] = this.control.uiFloatVals["shadowValPercent"] * 1000f;//1000 is the max shadow val.  Looks like it takes a float so thats the max? 
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("File Quality", GUILayout.Width(68f));
@@ -261,7 +258,7 @@ namespace KronalUtils
             GUILayout.Space(1f);
             String disW = Math.Floor((control.uiFloatVals["imgPercent"] +1) * control.calculatedWidth).ToString();
             String disH = Math.Floor((control.uiFloatVals["imgPercent"] + 1) * control.calculatedHeight).ToString();
-            GUILayout.Label(String.Format("{0:0.#}", this.control.uiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH, GUILayout.Width(110f));
+            GUILayout.Label(String.Format("{0:0.#}", this.control.uiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH, GUILayout.Width(110f));//GUILayout.Width(50f),
             control.uiFloatVals["imgPercent"] = control.uiFloatVals["imgPercent"] + 1;
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
@@ -271,7 +268,7 @@ namespace KronalUtils
             this.shaderTabCurrent = GUILayout.Toolbar(this.shaderTabCurrent, this.shaderTabsNames);
             GUILayout.EndHorizontal();
             
-            this.tabCurrent = 0;
+            this.tabCurrent = 0;//used only in Update() be 0.  This will be removed later
         }
         private void GUITabShader(string name)
         {
@@ -396,7 +393,7 @@ namespace KronalUtils
             var texture = this.control.Texture();
             if (texture)
             {
-                GUI.DrawTexture(this.orthoViewRect, texture, ScaleMode.ScaleToFit, false);
+                GUI.DrawTexture(this.orthoViewRect, texture, ScaleMode.ScaleToFit, false); // ALPHA BLENDING?! HEY HEY
             }
         }
 
@@ -449,7 +446,6 @@ namespace KronalUtils
                     DummyVoid,
                     ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
                     (Texture)GameDatabase.Instance.GetTexture("KronalUtils/Textures/icon_button", false));
-                control.setFacility();
 
             }
         }
