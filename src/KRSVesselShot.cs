@@ -103,14 +103,15 @@ namespace KronalUtils
             LoadShaders();
             UpdateShipBounds();
             
-            GameEvents.onPartAttach.Add(PartAttached);
-            GameEvents.onPartRemove.Add(PartRemoved);
+
+            GameEvents.onPartAttach.Add(PartModified);
+            GameEvents.onPartRemove.Add(PartModified);
         }
 
         ~KRSVesselShot()
         {
-            GameEvents.onPartAttach.Remove(PartAttached);
-            GameEvents.onPartRemove.Remove(PartRemoved);
+            GameEvents.onPartAttach.Remove(PartModified);
+            GameEvents.onPartRemove.Remove(PartModified);
         }
 
         // Sets up Orthographic and Perspective camera.
@@ -169,28 +170,52 @@ namespace KronalUtils
             var model = part.transform.Find("model");
             if (!model) return;
 
-            foreach (var r in model.GetComponentsInChildren<MeshRenderer>())
+            Dictionary<MeshRenderer, Shader> MeshRendererLibrary = new Dictionary<MeshRenderer,Shader>();
+
+            foreach (MeshRenderer mr in model.GetComponentsInChildren<MeshRenderer>())
             {
                 Material mat;
-                if (Materials.TryGetValue(r.material.shader.name, out mat))
+                if (Materials.TryGetValue(mr.material.shader.name, out mat))
                 {
-                    r.material.shader = mat.shader;
+                    if (!MeshRendererLibrary.ContainsKey(mr))
+                    {
+                        MeshRendererLibrary.Add(mr, mr.material.shader);
+                    }
+                    mr.material.shader = mat.shader;
                 }
                 else
                 {
-                    MonoBehaviour.print("[Warning] " + this.GetType().Name + "No replacement for " + r.material.shader + " in " + part + "/*/" + r);
+                    MonoBehaviour.print("[Warning] " + this.GetType().Name + "No replacement for " + mr.material.shader + " in " + part + "/*/" + mr);
                 }
             }
+            if (!PartShaderLibrary.ContainsKey(part))
+            {
+                PartShaderLibrary.Add(part, MeshRendererLibrary);
+            }
         }
+        
+        Dictionary<Part,Dictionary<MeshRenderer, Shader>> PartShaderLibrary = new Dictionary<Part,Dictionary<MeshRenderer,Shader>>();
 
-        private void PartAttached(GameEvents.HostTargetAction<Part, Part> data)
+        private void RestorePartShaders(Part part)
         {
-            ReplacePartShaders(data.host);
-            ReplacePartShaders(data.target);
-            UpdateShipBounds();
+            var model = part.transform.Find("model");
+            if (!model) return;
+            
+            Dictionary<MeshRenderer,Shader> MeshRendererLibrary;
+            if (PartShaderLibrary.TryGetValue(part, out MeshRendererLibrary))
+            {
+                foreach (MeshRenderer mr in model.GetComponentsInChildren<MeshRenderer>())
+                {
+                    Shader OldShader;
+                    if (MeshRendererLibrary.TryGetValue(mr, out OldShader))
+                    {
+                        mr.material.shader = OldShader;
+                    }
+                }
+            }            
         }
 
-        private void PartRemoved(GameEvents.HostTargetAction<Part, Part> data)
+        private void PartModified(GameEvents.HostTargetAction<Part, Part> data)
         {
             UpdateShipBounds();
         }
@@ -228,6 +253,11 @@ namespace KronalUtils
 
         public void GenTexture(Vector3 direction, int imageWidth = -1, int imageHeight = -1)
         {
+            foreach (Part p in EditorLogic.fetch.ship)
+            {
+                ReplacePartShaders(p);
+            }
+
             var minusDir = -direction;
             this.Camera.clearFlags = CameraClearFlags.SolidColor;
             if(this.Effects["Blue Print"].Enabled){
@@ -341,6 +371,11 @@ namespace KronalUtils
                         Graphics.Blit(this.rt, this.rt, fx.Value.Material);
                     }
                 }
+            }
+
+            foreach (Part p in EditorLogic.fetch.ship)
+            {
+                RestorePartShaders(p);
             }
         }
 
