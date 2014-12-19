@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using KSP.UI.Screens;
 
 namespace KronalUtils
 {
@@ -19,11 +20,17 @@ namespace KronalUtils
         private string[] shaderTabsNames;
         private Rect orthoViewRect;
         private GUIStyle guiStyleButtonAlert;
-        private ApplicationLauncherButton KVVButton;
+        private KSP.UI.Screens.ApplicationLauncherButton KVVButton;
         private bool visible;
         private KRSEditorAxis axis;
         private bool IsOnEditor()
         {
+            //return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedScene == GameScenes.SPH);
+<<<<<<< HEAD
+=======
+            Debug.Log(string.Format("HighLogic.LoadedSceneIsEditor: {0}", HighLogic.LoadedSceneIsEditor));
+            Debug.Log(string.Format("HighLogic.LoadedSceneIsEditor: {0}", HighLogic.LoadedSceneIsEditor));
+>>>>>>> init 0.90 updates
             return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedSceneIsEditor);
         }
 
@@ -61,25 +68,25 @@ namespace KronalUtils
         private void ButtonMode(bool isOn){
             if (isOn)
             {
-                EditorLogic.fetch.partPanelBtn.controlIsEnabled = true;
-                EditorLogic.fetch.actionPanelBtn.controlIsEnabled = true;
-                EditorLogic.fetch.crewPanelBtn.controlIsEnabled = true;
-                EditorLogic.fetch.saveBtn.controlIsEnabled = true;
-                EditorLogic.fetch.launchBtn.controlIsEnabled = true;
-                EditorLogic.fetch.exitBtn.controlIsEnabled = true;
-                EditorLogic.fetch.loadBtn.controlIsEnabled = true;
-                EditorLogic.fetch.newBtn.controlIsEnabled = true;
+                EditorLogic.fetch.partPanelBtn.enabled = true;
+                EditorLogic.fetch.actionPanelBtn.enabled = true;
+                EditorLogic.fetch.crewPanelBtn.enabled = true;
+                EditorLogic.fetch.saveBtn.enabled = true;
+                EditorLogic.fetch.launchBtn.enabled = true;
+                EditorLogic.fetch.exitBtn.enabled = true;
+                EditorLogic.fetch.loadBtn.enabled = true;
+                EditorLogic.fetch.newBtn.enabled = true;
             }
             else
             {
-                EditorLogic.fetch.partPanelBtn.controlIsEnabled = true;
-                EditorLogic.fetch.actionPanelBtn.controlIsEnabled = true;
-                EditorLogic.fetch.crewPanelBtn.controlIsEnabled = true;
-                EditorLogic.fetch.saveBtn.controlIsEnabled = false;
-                EditorLogic.fetch.launchBtn.controlIsEnabled = false;
-                EditorLogic.fetch.exitBtn.controlIsEnabled = false;
-                EditorLogic.fetch.loadBtn.controlIsEnabled = true;
-                EditorLogic.fetch.newBtn.controlIsEnabled = true;
+                EditorLogic.fetch.partPanelBtn.enabled = true;
+                EditorLogic.fetch.actionPanelBtn.enabled = true;
+                EditorLogic.fetch.crewPanelBtn.enabled = true;
+                EditorLogic.fetch.saveBtn.enabled = false;
+                EditorLogic.fetch.launchBtn.enabled = false;
+                EditorLogic.fetch.exitBtn.enabled = false;
+                EditorLogic.fetch.loadBtn.enabled = true;
+                EditorLogic.fetch.newBtn.enabled = true;
 
             }
 
@@ -98,7 +105,9 @@ namespace KronalUtils
                                            Screen.height - Input.mousePosition.y);
             return this.windowSize.Contains(position);
         }
-        void setEditorLock()//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
+        /* Whenever we mouseover our window, we need to lock the editor so we don't pick up
+         * parts while dragging the window around */
+        void setEditorLock()//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs#L296
         {
             if (visible)
             {
@@ -133,13 +142,16 @@ namespace KronalUtils
         {
             switch (HighLogic.LoadedScene) {//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
                 case GameScenes.EDITOR:
+                //case GameScenes.SPH:
                     break;
                 default:
+                    /* don't show window during scene changes */
                     return;
             }
             if (visible) 
             {
                 this.windowSize = GUILayout.Window(GetInstanceID(), this.windowSize, GUIWindow, "Kronal Vessel Viewer", HighLogic.Skin.window);
+                //EditorLogic.softLock = this.windowSize.Contains(Event.current.mousePosition);//EditorLogic.softLock not supported anymore? this.windowSize is static not dynamic with drag & drop? what does this do?
             }
 
             if (Event.current.type == EventType.Repaint)
@@ -160,6 +172,7 @@ namespace KronalUtils
 
         private void GUIButtons()
         {
+            control.uiBoolVals["saveTextureEvent"] = false;
             if (this.guiStyleButtonAlert == null)
             {
                 this.guiStyleButtonAlert = new GUIStyle(GUI.skin.button);
@@ -271,11 +284,7 @@ namespace KronalUtils
             this.shaderTabCurrent = GUILayout.Toolbar(this.shaderTabCurrent, this.shaderTabsNames);
             GUILayout.EndHorizontal();
             
-<<<<<<< 423affa963f6398ce4853486ee134b4b7662dd79
-            this.tabCurrent = 0;
-=======
             this.tabCurrent = 0;//used only in Update() be 0.  This will be removed later
->>>>>>> Pre-clean for fingerboxes merge
         }
         private void GUITabShader(string name)
         {
@@ -442,7 +451,10 @@ namespace KronalUtils
 
         void OnGUIAppLauncherReady()
         {
-            if (ApplicationLauncher.Ready)
+#if DEBUG
+            Debug.Log(string.Format("KVV: OnGUIAppLauncherReady {0}", KSP.UI.Screens.ApplicationLauncher.Ready.ToString()));
+#endif
+            if (KSP.UI.Screens.ApplicationLauncher.Ready)
             {
                 KVVButton = ApplicationLauncher.Instance.AddModApplication(
                     onAppLaunchToggleOn,
@@ -451,7 +463,7 @@ namespace KronalUtils
                     DummyVoid,
                     DummyVoid,
                     DummyVoid,
-                    ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
+                    KSP.UI.Screens.ApplicationLauncher.AppScenes.SPH | KSP.UI.Screens.ApplicationLauncher.AppScenes.VAB,
                     (Texture)GameDatabase.Instance.GetTexture("KronalUtils/Textures/icon_button", false));
                 control.setFacility();
 
@@ -475,12 +487,17 @@ namespace KronalUtils
 
         void OnDestroy()
         {
+#if DEBUG
+            Debug.Log(string.Format("KVV: OnDestroy"));
+#endif
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
             if (this.axis != null)
                 EditorLogic.DestroyObject(this.axis);
 
             if (KVVButton != null)
-                ApplicationLauncher.Instance.RemoveModApplication(KVVButton);
+                KSP.UI.Screens.ApplicationLauncher.Instance.RemoveModApplication(KVVButton);
+
+            Resources.UnloadUnusedAssets();//fix memory leak?
         }
     }
 }
