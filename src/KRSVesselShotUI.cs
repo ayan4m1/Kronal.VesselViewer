@@ -26,8 +26,6 @@ namespace KronalUtils
         private bool IsOnEditor()
         {
             //return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedScene == GameScenes.SPH);
-            Debug.Log(string.Format("HighLogic.LoadedSceneIsEditor: {0}", HighLogic.LoadedSceneIsEditor));
-            Debug.Log(string.Format("HighLogic.LoadedSceneIsEditor: {0}", HighLogic.LoadedSceneIsEditor));
             return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedSceneIsEditor);
         }
 

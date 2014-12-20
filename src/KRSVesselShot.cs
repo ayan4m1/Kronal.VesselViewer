@@ -16,6 +16,7 @@ namespace KronalUtils
         public ShaderMaterial MaterialBluePrint = new ShaderMaterial(KSP.IO.File.ReadAllText<KRSVesselShot>("blueprint"));
         private List<string> Shaders = new List<string>() { "edn", "cutoff", "diffuse", "bumped", "bumpedspecular", "specular", "unlit", "emissivespecular", "emissivebumpedspecular" };
         private Dictionary<string, Material> Materials;
+        public string editorOrientation = "";//SPH|VAB
         public readonly IDictionary<string, ShaderMaterial> Effects;
         public int calculatedWidth = 1;
         public int calculatedHeight = 1;
@@ -113,8 +114,10 @@ namespace KronalUtils
             GameEvents.onPartAttach.Remove(PartModified);
             GameEvents.onPartRemove.Remove(PartModified);
         }
-
-        // Sets up Orthographic and Perspective camera.
+        public void setFacility()
+        {   
+            editorOrientation = (EditorLogic.fetch.ship.shipFacility == EditorFacility.SPH ? "SPH" : "VAB");
+        }
         private void SetupCameras()
         {
             this.cameras = new Camera[2];
@@ -134,8 +137,10 @@ namespace KronalUtils
         public void RotateShip(float degrees)
         {
             Vector3 rotateAxis;
+            if (editorOrientation != "SPH" && editorOrientation != "VAB") { setFacility(); }
             
-            if (HighLogic.LoadedScene == GameScenes.SPH)
+            //if (HighLogic.LoadedScene == GameScenes.SPH)
+            if (editorOrientation == "SPH")
             {
                 Debug.Log(string.Format("Rotating in SPH: {0}", degrees));
                 //rotateAxis = EditorLogic.startPod.transform.forward;
@@ -144,7 +149,8 @@ namespace KronalUtils
             else
             {
                 Debug.Log(string.Format("Rotating in VAB: {0}", degrees));
-                rotateAxis = EditorLogic.startPod.transform.up;
+                //rotateAxis = EditorLogic.startPod.transform.up;
+                rotateAxis = EditorLogic.RootPart.transform.up;
             }
 
             this.direction = Quaternion.AngleAxis(degrees, rotateAxis) * this.direction;
@@ -272,8 +278,8 @@ namespace KronalUtils
 
             this.Camera.transform.position = this.shipBounds.center;
 
-            // This sets the horizon before the camera looks to vehicle center.
-            if (HighLogic.LoadedScene == GameScenes.SPH)
+            //if (HighLogic.LoadedScene == GameScenes.SPH)
+            if (editorOrientation == "SPH")
             {
                 this.Camera.transform.rotation = Quaternion.AngleAxis(90, Vector3.right);
             }
