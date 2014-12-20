@@ -25,8 +25,6 @@ namespace KronalUtils
         private bool IsOnEditor()
         {
             //return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedScene == GameScenes.SPH);
-            Debug.Log(string.Format("HighLogic.LoadedSceneIsEditor: {0}", HighLogic.LoadedSceneIsEditor));
-            Debug.Log(string.Format("HighLogic.LoadedSceneIsEditor: {0}", HighLogic.LoadedSceneIsEditor));
             return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedSceneIsEditor);
         }
 
@@ -139,7 +137,7 @@ namespace KronalUtils
             if (visible) 
             {
                 this.windowSize = GUILayout.Window(GetInstanceID(), this.windowSize, GUIWindow, "Kronal Vessel Viewer", HighLogic.Skin.window);
-                EditorLogic.softLock = this.windowSize.Contains(Event.current.mousePosition);//EditorLogic.softLock not supported anymore? this.windowSize is static not dynamic with drag & drop? what does this do?
+                //EditorLogic.softLock = this.windowSize.Contains(Event.current.mousePosition);//EditorLogic.softLock not supported anymore? this.windowSize is static not dynamic with drag & drop? what does this do?
             }
 
             if (Event.current.type == EventType.Repaint)
@@ -449,6 +447,7 @@ namespace KronalUtils
                     DummyVoid,
                     ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
                     (Texture)GameDatabase.Instance.GetTexture("KronalUtils/Textures/icon_button", false));
+                control.setFacility();
 
             }
         }
