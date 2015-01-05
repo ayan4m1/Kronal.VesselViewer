@@ -158,6 +158,7 @@ namespace KronalUtils
 
         private void GUIButtons()
         {
+            control.uiBoolVals["saveTextureEvent"] = false;
             if (this.guiStyleButtonAlert == null)
             {
                 this.guiStyleButtonAlert = new GUIStyle(GUI.skin.button);
