@@ -484,6 +484,8 @@ namespace KronalUtils
 
             if (KVVButton != null)
                 ApplicationLauncher.Instance.RemoveModApplication(KVVButton);
+
+            Resources.UnloadUnusedAssets();//fix memory leak?
         }
     }
 }
