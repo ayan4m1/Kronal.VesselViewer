@@ -57,11 +57,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KRSEditorAxis.cs" />
-    <Compile Include="KRSUtils.cs" />
-    <Compile Include="KRSVesselShot.cs" />
-    <Compile Include="KRSVesselShotUI.cs" />
+    <Compile Include="KVrEditorAxis.cs" />
+    <Compile Include="KVrUtils.cs" />
+    <Compile Include="KVrVesselShot.cs" />
+    <Compile Include="KVrVesselShotUI.cs" />
     <Compile Include="MaterialProperties.cs" />
+    <Compile Include="ShaderIndex.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

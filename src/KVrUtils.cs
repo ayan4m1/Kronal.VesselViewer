@@ -38,7 +38,7 @@ namespace KronalUtils
         }
     }
 
-    class KRSUtils
+    class KVrUtils
     {
         public static Type FindType(string qualifiedTypeName)
         {
@@ -62,9 +62,9 @@ namespace KronalUtils
 
         public static string GetResourceString(string name)
         {
-            if (KSP.IO.File.Exists<KRSUtils>(name))
+            if (KSP.IO.File.Exists<KVrUtils>(name))
             {
-                return KSP.IO.File.ReadAllText<KRSUtils>(name);
+                return KSP.IO.File.ReadAllText<KVrUtils>(name);
             }
             else
             {

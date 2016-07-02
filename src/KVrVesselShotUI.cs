@@ -8,11 +8,11 @@ using KSP.UI.Screens;
 namespace KronalUtils
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    class KRSVesselShotUI : MonoBehaviour
+    class KVrVesselShotUI : MonoBehaviour
     {
-        private KRSVesselShot control = new KRSVesselShot();
+        private KVrVesselShot control = new KVrVesselShot();
         bool mySoftLock = false;//not to be confused with EditorLogic.softLock
-        private string inputLockIdent = "KVV-EditorLock";
+        private string inputLockIdent = "KVr-EditorLock";
         private Rect windowSize;
         private Vector2 windowScrollPos;
         private int tabCurrent;//almost obsolete
@@ -20,9 +20,9 @@ namespace KronalUtils
         private string[] shaderTabsNames;
         private Rect orthoViewRect;
         private GUIStyle guiStyleButtonAlert;
-        private KSP.UI.Screens.ApplicationLauncherButton KVVButton;
+        private KSP.UI.Screens.ApplicationLauncherButton KVrButton;
         private bool visible;
-        private KRSEditorAxis axis;
+        private KVrEditorAxis axis;
         private bool IsOnEditor()
         {
             //return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedScene == GameScenes.SPH);
@@ -38,12 +38,13 @@ namespace KronalUtils
             this.control.Config.onApply += ConfigApplied;
             this.control.Config.onRevert += ConfigReverted;
 
+            //GameEvents.onGUIApplicationLauncherReady += OnGUIAppLauncherReady;
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
         }
 
         private void Start()
         {
-            if (KVVButton == null)
+            if (KVrButton == null)
             {
                 this.OnGUIAppLauncherReady();
             }
@@ -82,7 +83,7 @@ namespace KronalUtils
                 EditorLogic.fetch.exitBtn.enabled = false;
                 EditorLogic.fetch.loadBtn.enabled = true;
                 EditorLogic.fetch.newBtn.enabled = true;
-
+                
             }
 
         }
@@ -146,7 +147,6 @@ namespace KronalUtils
             if (visible) 
             {
                 this.windowSize = GUILayout.Window(GetInstanceID(), this.windowSize, GUIWindow, "Kronal Vessel Viewer", HighLogic.Skin.window);
-                //EditorLogic.softLock = this.windowSize.Contains(Event.current.mousePosition);//EditorLogic.softLock not supported anymore? this.windowSize is static not dynamic with drag & drop? what does this do?
             }
 
             if (Event.current.type == EventType.Repaint)
@@ -451,7 +451,7 @@ namespace KronalUtils
 #endif
             if (KSP.UI.Screens.ApplicationLauncher.Ready)
             {
-                KVVButton = ApplicationLauncher.Instance.AddModApplication(
+                KVrButton = ApplicationLauncher.Instance.AddModApplication(
                     onAppLaunchToggleOn,
                     onAppLaunchToggleOff,
                     DummyVoid,
@@ -467,7 +467,7 @@ namespace KronalUtils
 
         void onAppLaunchToggleOn()
         {
-            this.axis = EditorLogic.fetch.editorCamera.gameObject.AddComponent<KRSEditorAxis>();
+            this.axis = EditorLogic.fetch.editorCamera.gameObject.AddComponent<KVrEditorAxis>();
             this.control.UpdateShipBounds();
             visible = true;
         }
@@ -489,8 +489,8 @@ namespace KronalUtils
             if (this.axis != null)
                 EditorLogic.DestroyObject(this.axis);
 
-            if (KVVButton != null)
-                KSP.UI.Screens.ApplicationLauncher.Instance.RemoveModApplication(KVVButton);
+            if (KVrButton != null)
+                KSP.UI.Screens.ApplicationLauncher.Instance.RemoveModApplication(KVrButton);
 
             Resources.UnloadUnusedAssets();//fix memory leak?
         }

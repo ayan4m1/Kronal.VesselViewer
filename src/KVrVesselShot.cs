@@ -5,15 +5,25 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using KSP;
+using KSPAssets;
+
 
 namespace KronalUtils
 {
-    class KRSVesselShot
+    class KVrVesselShot
     {
+        //KSPAssets.AssetDefinition[] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
+        public Dictionary<string, string> KVrShaders = new Dictionary<string, string> { 
+            { "MaterialFXAA", KronalUtils.Properties.Resources.ShaderFXAA }, 
+            { "MaterialColorAdjust", KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust") }, 
+            { "MaterialEdgeDetect", KSP.IO.File.ReadAllText<KVrVesselShot>("edn2") }, 
+            { "MaterialBluePrint", KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint") }, 
+        };
+        
         public ShaderMaterial MaterialFXAA = new ShaderMaterial(KronalUtils.Properties.Resources.ShaderFXAA);
-        public ShaderMaterial MaterialColorAdjust = new ShaderMaterial(KSP.IO.File.ReadAllText<KRSVesselShot>("coloradjust"));
-        public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial(KSP.IO.File.ReadAllText<KRSVesselShot>("edn2"));
-        public ShaderMaterial MaterialBluePrint = new ShaderMaterial(KSP.IO.File.ReadAllText<KRSVesselShot>("blueprint"));
+        public ShaderMaterial MaterialColorAdjust = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust"));
+        public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("edn2"));
+        public ShaderMaterial MaterialBluePrint = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint"));/**/
         private List<string> Shaders = new List<string>() { "edn", "cutoff", "diffuse", "bumped", "bumpedspecular", "specular", "unlit", "emissivespecular", "emissivebumpedspecular" };
         private Dictionary<string, Material> Materials;
         public string editorOrientation = "";//SPH|VAB
@@ -85,7 +95,7 @@ namespace KronalUtils
             }
         }
 
-        public KRSVesselShot()
+        public KVrVesselShot()
         {
             SetupCameras();
             this.Config = new VesselViewConfig();
@@ -109,7 +119,7 @@ namespace KronalUtils
             GameEvents.onPartRemove.Add(PartModified);
         }
 
-        ~KRSVesselShot()
+        ~KVrVesselShot()
         {
             GameEvents.onPartAttach.Remove(PartModified);
             GameEvents.onPartRemove.Remove(PartModified);
@@ -138,17 +148,21 @@ namespace KronalUtils
         {
             Vector3 rotateAxis;
             if (editorOrientation != "SPH" && editorOrientation != "VAB") { setFacility(); }
-            
+
             //if (HighLogic.LoadedScene == GameScenes.SPH)
             if (editorOrientation == "SPH")
             {
+#if DEBUG
                 Debug.Log(string.Format("Rotating in SPH: {0}", degrees));
+#endif
                 //rotateAxis = EditorLogic.startPod.transform.forward;
                 rotateAxis = EditorLogic.RootPart.transform.forward;
             }
             else
             {
+#if DEBUG
                 Debug.Log(string.Format("Rotating in VAB: {0}", degrees));
+#endif
                 //rotateAxis = EditorLogic.startPod.transform.up;
                 rotateAxis = EditorLogic.RootPart.transform.up;
             }
@@ -162,12 +176,15 @@ namespace KronalUtils
             {
                 try
                 {
-                    var mat = new Material(KRSUtils.GetResourceString(shaderFilename));
+                    var mat = new Material(KVrUtils.GetResourceString(shaderFilename));
                     Materials[mat.shader.name] = mat;
                 }
                 catch
                 {
-                    MonoBehaviour.print("[ERROR] " + this.GetType().Name + " : Failed to load " + shaderFilename);
+                    //MonoBehaviour.print("[ERROR] " + this.GetType().Name + " : Failed to load " + shaderFilename);
+#if DEBUG
+                    Debug.Log(string.Format("KVV: LoadShaders [ERROR] " + this.GetType().Name + " : Failed to load " + shaderFilename));
+#endif
                 }
             }
         }
@@ -184,15 +201,15 @@ namespace KronalUtils
                 Material mat;
                 if (Materials.TryGetValue(mr.material.shader.name, out mat))
                 {
-                    if (!MeshRendererLibrary.ContainsKey(mr))
-                    {
+                    if (!MeshRendererLibrary.ContainsKey(mr)) {
                         MeshRendererLibrary.Add(mr, mr.material.shader);
                     }
                     mr.material.shader = mat.shader;
-                }
-                else
-                {
-                    MonoBehaviour.print("[Warning] " + this.GetType().Name + "No replacement for " + mr.material.shader + " in " + part + "/*/" + mr);
+                } else {
+                    //MonoBehaviour.print("[Warning] " + this.GetType().Name + "No replacement for " + mr.material.shader + " in " + part + "/*/" + mr);
+#if DEBUG
+                    Debug.Log(string.Format("KVV: LoadShaders [Warning] " + this.GetType().Name + "No replacement for " + mr.material.shader + " in " + part + "/*/" + mr));
+#endif
                 }
             }
             if (!PartShaderLibrary.ContainsKey(part))
@@ -221,7 +238,8 @@ namespace KronalUtils
                 }
             }            
         }
-
+        
+        //private void PartModified(Part data)
         private void PartModified(GameEvents.HostTargetAction<Part, Part> data)
         {
             UpdateShipBounds();
@@ -262,10 +280,10 @@ namespace KronalUtils
         {
             if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
-	            foreach (Part p in EditorLogic.fetch.ship)
-	            {
-	                ReplacePartShaders(p);
-	            }
+                foreach (Part p in EditorLogic.fetch.ship)
+                {
+                    ReplacePartShaders(p);
+                }
             }
 
             var minusDir = -direction;
@@ -275,7 +293,6 @@ namespace KronalUtils
             else{
                 this.Camera.backgroundColor = new Color(uiFloatVals["bgR"], uiFloatVals["bgG"], uiFloatVals["bgB"], uiFloatVals["bgA"]);
             }
-
             this.Camera.transform.position = this.shipBounds.center;
 
             //if (HighLogic.LoadedScene == GameScenes.SPH)
@@ -287,12 +304,9 @@ namespace KronalUtils
             {
                 this.Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.right);
             }
-            // this.Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.up); // original 
 
             // Apply angle Vector to camera.
             this.Camera.transform.Translate(minusDir * this.Camera.nearClipPlane);
-            // this.Camera.transform.Translate(Vector3.Scale(minusDir, this.shipBounds.extents) + minusDir * this.Camera.nearClipPlane); // original 
-            // Deckblad: There was a lot of math here when all we needed to do is establish the rotation of the camera.
 
             // Face camera to vehicle.
             this.Camera.transform.LookAt(this.shipBounds.center);
@@ -308,23 +322,14 @@ namespace KronalUtils
 
             // Find distance from vehicle.
             float positionOffset = (this.shipBounds.size.magnitude - this.position.z) / (2f * Mathf.Tan(Mathf.Deg2Rad * this.Camera.fieldOfView / 2f));
-            // float positionOffset = (height - this.position.z) / (2f * Mathf.Tan(Mathf.Deg2Rad * this.Camera.fieldOfView / 2f)) - depth * 0.5f; // original 
-            // Use magnitude of bounds instead of height and remove vehicle bounds depth for uniform distance from vehicle. Height and depth of vehicle change in relation to the camera as we move around the vehicle.
 
-            // Translate and Zoom camera
             this.Camera.transform.Translate(new Vector3(this.position.x, this.position.y, -positionOffset));
-
-            // Get distance from camera to ship. Apply to farClipPlane
             float distanceToShip = Vector3.Distance(this.Camera.transform.position, this.shipBounds.center);
-
-            // Set far clip plane to just past size of vehicle.
             this.Camera.farClipPlane = distanceToShip + this.Camera.nearClipPlane + depth * 2 + 1; // 1 for the first rotation vector
-            // this.Camera.farClipPlane = Camera.nearClipPlane + positionOffset + this.position.magnitude + depth; // original
             
             if (this.Orthographic)
             {
                 this.Camera.orthographicSize = (Math.Max(height, width) - this.position.z) / 2f; // Use larger of ship height or width.
-                // this.Camera.orthographicSize = (height - this.position.z) / 2f; // original
             }
 
             bool isSaving = false;
@@ -340,7 +345,6 @@ namespace KronalUtils
                 this.calculatedHeight = (int)(this.calculatedWidth / tmpAspect);
             }
 
-            // If we're saving, use full resolution.
             if (imageWidth <= 0 || imageHeight <= 0)
             {
                 // Constrain image to max size with respect to aspect
@@ -383,11 +387,11 @@ namespace KronalUtils
             }
             if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
-	            foreach (Part p in EditorLogic.fetch.ship)
-	            {
-	                RestorePartShaders(p);
-	            }
-	        }
+                foreach (Part p in EditorLogic.fetch.ship)
+                {
+                    RestorePartShaders(p);
+                }
+            }
             if (uiBoolVals["saveTextureEvent"])
             {
                 Resources.UnloadUnusedAssets();//fix memory leak?

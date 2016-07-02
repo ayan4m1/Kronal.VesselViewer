@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using UnityEngine;
 
 namespace KronalUtils
 {
-    class KRSEditorAxis: MonoBehaviour
+    class KVrEditorAxis: MonoBehaviour
     {
         public Material mat;
         public EditorVesselOverlays evo;
@@ -16,13 +17,23 @@ namespace KronalUtils
         {
             if (!mat)
             {
-                mat = new Material("Shader \"Lines/Colored Blended\" {" +
+                ShaderIndex myShadIndex = new ShaderIndex();
+                //string KVrPath = Path.Combine([System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(), "GameData" , "KronalUtils" ,  "Textures" , "KVrAxis.shader");
+                string KVrPath = Path.Combine(System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString() + "GameData" + Path.DirectorySeparatorChar + "KronalUtils" + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar, "KVrAxis.shader");
+
+
+#if DEBUG
+                Debug.Log(string.Format("KVV: CreateLineMaterial 1: {0}", KVrPath));
+#endif
+                //KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType("JSI/RasterPropMonitor/rasterpropmonitor", typeof(Shader));
+                Material mat = new Material(UnityEngine.Resources.Load(KVrPath, typeof(Shader)) as Shader);
+                /*mat = new Material("Shader \"Lines/Colored Blended\" {" +
                     "SubShader { Pass { " +
                     "    Blend SrcAlpha OneMinusSrcAlpha " +
                     "    ZWrite Off ZTest Always Cull Off Fog { Mode Off } " +
                     "    BindChannels {" +
                     "      Bind \"vertex\", vertex Bind \"color\", color }" +
-                    "} } }");
+                    "} } }");*/
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 mat.shader.hideFlags = HideFlags.HideAndDontSave;
             }
@@ -31,10 +42,12 @@ namespace KronalUtils
         void Awake()
         {
             CreateLineMaterial();
-            this.evo = (EditorVesselOverlays) GameObject.FindObjectOfType(typeof(EditorVesselOverlays));
-            print("awake");
-        }
+            this.evo = (EditorVesselOverlays)GameObject.FindObjectOfType(typeof(EditorVesselOverlays));
 
+#if DEBUG
+            Debug.Log(string.Format("KVV: Awake"));
+#endif
+        }
         void OnPostRender(Camera cameraArg)
         {
             if (!this.evo.CoMmarker.gameObject.activeInHierarchy) return;
