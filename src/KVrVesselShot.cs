@@ -13,17 +13,23 @@ namespace KronalUtils
     class KVrVesselShot
     {
         //KSPAssets.AssetDefinition[] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
+        /*
         public Dictionary<string, string> KVrShaders = new Dictionary<string, string> { 
             { "MaterialFXAA", KronalUtils.Properties.Resources.ShaderFXAA }, 
             { "MaterialColorAdjust", KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust") }, 
             { "MaterialEdgeDetect", KSP.IO.File.ReadAllText<KVrVesselShot>("edn2") }, 
             { "MaterialBluePrint", KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint") }, 
+        };*/
+        //public KVrUtilsCore KVVCore = new KVrUtilsCore();
+        public Dictionary<string, string> KVrShaders = new Dictionary<string, string> {
+            { "MaterialFXAA", "KVV/Hidden/SlinDev/Desktop/PostProcessing/FXAA" },
+            { "MaterialColorAdjust", "KVV/Color Adjust" },
+            { "MaterialEdgeDetect", "KVV/Hidden/Edge Detect Normals2" },
         };
-        
         public ShaderMaterial MaterialFXAA = new ShaderMaterial(KronalUtils.Properties.Resources.ShaderFXAA);
         public ShaderMaterial MaterialColorAdjust = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust"));
         public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("edn2"));
-        public ShaderMaterial MaterialBluePrint = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint"));/**/
+        //public ShaderMaterial MaterialBluePrint = new ShaderMaterial(KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint"));/**/
         private List<string> Shaders = new List<string>() { "edn", "cutoff", "diffuse", "bumped", "bumpedspecular", "specular", "unlit", "emissivespecular", "emissivebumpedspecular" };
         private Dictionary<string, Material> Materials;
         public string editorOrientation = "";//SPH|VAB
@@ -104,10 +110,10 @@ namespace KronalUtils
             this.Effects = new Dictionary<string, ShaderMaterial>() {
                 {"Color Adjust",MaterialColorAdjust},
                 {"Edge Detect", MaterialEdgeDetect},
-                {"Blue Print", MaterialBluePrint},
+                //{"Blue Print", MaterialBluePrint},
                 {"FXAA", MaterialFXAA}
             };
-            this.Effects["Blue Print"].Enabled = false;
+            //this.Effects["Blue Print"].Enabled = false;
             uiFloatVals["bgR"]=uiFloatVals["bgR_"];
             uiFloatVals["bgG"]=uiFloatVals["bgG_"];
             uiFloatVals["bgB"]=uiFloatVals["bgB_"];
@@ -288,11 +294,7 @@ namespace KronalUtils
 
             var minusDir = -direction;
             this.Camera.clearFlags = CameraClearFlags.SolidColor;
-            if(this.Effects["Blue Print"].Enabled){
-                this.Camera.backgroundColor = new Color(1f, 1f, 1f, 0.0f);}
-            else{
                 this.Camera.backgroundColor = new Color(uiFloatVals["bgR"], uiFloatVals["bgG"], uiFloatVals["bgB"], uiFloatVals["bgA"]);
-            }
             this.Camera.transform.position = this.shipBounds.center;
 
             //if (HighLogic.LoadedScene == GameScenes.SPH)
@@ -422,7 +424,8 @@ namespace KronalUtils
             do{
                 ++file_inc;
                 filenamebase = ShipNameFileSafe + "_" + file_inc.ToString() + ".png";
-                filename = Path.Combine(System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(), "Screenshots" + Path.DirectorySeparatorChar + filenamebase);
+                //filename = Path.Combine(System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(), "Screenshots" + Path.DirectorySeparatorChar + filenamebase);
+                filename = Path.Combine(KVrUtilsCore.ModExport() + Path.DirectorySeparatorChar + filenamebase);
             }while(File.Exists(filename));
             System.IO.File.WriteAllBytes(filename, bytes);
 

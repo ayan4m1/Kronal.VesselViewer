@@ -241,7 +241,7 @@ namespace KronalUtils
 
         private Func<Part, bool> CanApplyIfType(string typeName)
         {
-            var type = KRSUtils.FindType(typeName);
+            var type = KVrUtils.FindType(typeName);
             return (p) => type.IsInstanceOfType(p);
         }
 

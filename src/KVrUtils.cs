@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.IO;
 using UnityEngine;
+using KSP;
 
 namespace KronalUtils
 {

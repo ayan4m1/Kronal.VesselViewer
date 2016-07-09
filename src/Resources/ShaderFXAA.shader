@@ -1,4 +1,4 @@
-Shader "Hidden/SlinDev/Desktop/PostProcessing/FXAA"
+Shader "KVV/Hidden/SlinDev/Desktop/PostProcessing/FXAA"
 {
     Properties
     {

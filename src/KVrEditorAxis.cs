@@ -17,16 +17,9 @@ namespace KronalUtils
         {
             if (!mat)
             {
-                ShaderIndex myShadIndex = new ShaderIndex();
-                //string KVrPath = Path.Combine([System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(), "GameData" , "KronalUtils" ,  "Textures" , "KVrAxis.shader");
-                string KVrPath = Path.Combine(System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString() + "GameData" + Path.DirectorySeparatorChar + "KronalUtils" + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar, "KVrAxis.shader");
 
-
-#if DEBUG
-                Debug.Log(string.Format("KVV: CreateLineMaterial 1: {0}", KVrPath));
-#endif
                 //KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType("JSI/RasterPropMonitor/rasterpropmonitor", typeof(Shader));
-                Material mat = new Material(UnityEngine.Resources.Load(KVrPath, typeof(Shader)) as Shader);
+                Material mat = new Material(KVrUtilsCore.getShaderById("KVV/Lines/Colored Blended"));
                 /*mat = new Material("Shader \"Lines/Colored Blended\" {" +
                     "SubShader { Pass { " +
                     "    Blend SrcAlpha OneMinusSrcAlpha " +
@@ -45,7 +38,7 @@ namespace KronalUtils
             this.evo = (EditorVesselOverlays)GameObject.FindObjectOfType(typeof(EditorVesselOverlays));
 
 #if DEBUG
-            Debug.Log(string.Format("KVV: Awake"));
+            Debug.Log(string.Format("KVV: KVrEditorAxis Awake"));
 #endif
         }
         void OnPostRender(Camera cameraArg)

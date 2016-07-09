@@ -290,49 +290,12 @@ namespace KronalUtils
                 GUILayout.EndHorizontal();
                 return;
             }
-            if (name == "Blue Print" && this.control.Effects[name].Enabled)
-            {
-                GUILayout.BeginHorizontal();
-                GUIStyle phaseNotice = new GUIStyle(GUI.skin.label);
-                phaseNotice.fontSize = 10;
-                phaseNotice.active.textColor = XKCDColors.BrightRed;
-                phaseNotice.normal.textColor = XKCDColors.BrightRed;
-                GUILayout.Label("**This feature will be phased out. Change Log: 0.0.4**", phaseNotice, GUILayout.ExpandWidth(true));
-                GUILayout.EndHorizontal();
-            }
             GUILayout.BeginHorizontal();
             this.control.Effects[name].Enabled = GUILayout.Toggle(this.control.Effects[name].Enabled, "Active");
             GUILayout.EndHorizontal();
             for (var i = 0; i < this.control.Effects[name].PropertyCount; ++i)
             {
 
-                if (name == "Blue Print" && !this.control.Effects[name].Enabled)
-                {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Background (RGB)", GUILayout.Width(74f));
-                    GUILayout.BeginVertical();
-                    Color newVal = new Color(1f,1f,1f,1f);
-                    newVal.r = GUILayout.HorizontalSlider(this.control.uiFloatVals["bgR"], 0f, 1f);
-                    newVal.g = GUILayout.HorizontalSlider(this.control.uiFloatVals["bgG"], 0f, 1f);
-                    newVal.b = GUILayout.HorizontalSlider(this.control.uiFloatVals["bgB"], 0f, 1f);
-                    this.control.uiFloatVals["bgR"] = newVal.r;
-                    this.control.uiFloatVals["bgG"] = newVal.g;
-                    this.control.uiFloatVals["bgB"] = newVal.b;
-                    GUILayout.EndVertical();
-                    GUILayout.BeginVertical();
-                    GUILayout.Label(this.control.uiFloatVals["bgR"].ToString("F"), GUILayout.Width(40f));
-                    GUILayout.Label(this.control.uiFloatVals["bgG"].ToString("F"), GUILayout.Width(40f));
-                    GUILayout.Label(this.control.uiFloatVals["bgB"].ToString("F"), GUILayout.Width(40f));
-                    GUILayout.EndVertical();
-                    if (GUILayout.Button("RESET", this.guiStyleButtonAlert))
-                    {
-                        this.control.uiFloatVals["bgR"] = this.control.uiFloatVals["bgR_"];
-                        this.control.uiFloatVals["bgG"] = this.control.uiFloatVals["bgG_"];
-                        this.control.uiFloatVals["bgB"] = this.control.uiFloatVals["bgB_"];
-                    }
-                    GUILayout.EndHorizontal();
-                    break;
-                }
                 var prop = this.control.Effects[name][i];
                 prop.Match(
                     IfFloat: (p) =>
@@ -451,6 +414,7 @@ namespace KronalUtils
 #endif
             if (KSP.UI.Screens.ApplicationLauncher.Ready)
             {
+                
                 KVrButton = ApplicationLauncher.Instance.AddModApplication(
                     onAppLaunchToggleOn,
                     onAppLaunchToggleOff,
