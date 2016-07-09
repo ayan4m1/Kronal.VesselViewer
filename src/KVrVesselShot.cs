@@ -14,11 +14,11 @@ namespace KronalUtils
     {
         //KSPAssets.AssetDefinition[] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
         /*
-        public Dictionary<string, string> KVrShaders = new Dictionary<string, string> { 
-            { "MaterialFXAA", KronalUtils.Properties.Resources.ShaderFXAA }, 
-            { "MaterialColorAdjust", KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust") }, 
-            { "MaterialEdgeDetect", KSP.IO.File.ReadAllText<KVrVesselShot>("edn2") }, 
-            { "MaterialBluePrint", KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint") }, 
+        public Dictionary<string, string> KVrShaders = new Dictionary<string, string> {
+            { "MaterialFXAA", KronalUtils.Properties.Resources.ShaderFXAA },
+            { "MaterialColorAdjust", KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust") },
+            { "MaterialEdgeDetect", KSP.IO.File.ReadAllText<KVrVesselShot>("edn2") },
+            { "MaterialBluePrint", KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint") },
         };*/
         //public KVrUtilsCore KVVCore = new KVrUtilsCore();
         public Dictionary<string, string> KVrShaders = new Dictionary<string, string> {
@@ -294,7 +294,7 @@ namespace KronalUtils
 
             var minusDir = -direction;
             this.Camera.clearFlags = CameraClearFlags.SolidColor;
-                this.Camera.backgroundColor = new Color(uiFloatVals["bgR"], uiFloatVals["bgG"], uiFloatVals["bgB"], uiFloatVals["bgA"]);
+            this.Camera.backgroundColor = new Color(uiFloatVals["bgR"], uiFloatVals["bgG"], uiFloatVals["bgB"], uiFloatVals["bgA"]);
             this.Camera.transform.position = this.shipBounds.center;
 
             //if (HighLogic.LoadedScene == GameScenes.SPH)
@@ -425,8 +425,8 @@ namespace KronalUtils
                 ++file_inc;
                 filenamebase = ShipNameFileSafe + "_" + file_inc.ToString() + ".png";
                 //filename = Path.Combine(System.IO.Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(), "Screenshots" + Path.DirectorySeparatorChar + filenamebase);
-                filename = Path.Combine(KVrUtilsCore.ModExport() + Path.DirectorySeparatorChar + filenamebase);
-            }while(File.Exists(filename));
+                filename = Path.Combine(KVrUtilsCore.ModExport() + Path.DirectorySeparatorChar, filenamebase);
+            } while(File.Exists(filename));
             System.IO.File.WriteAllBytes(filename, bytes);
 
             Debug.Log(string.Format("KVV: Took screenshot to: {0}", filename));
