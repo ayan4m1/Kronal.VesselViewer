@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KSPBundleDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" UrlName="kvv" Name="kvv" CreatedTime="-8587335100664695688">
+  <Author />
+  <Info />
+  <Assets>
+    <Asset Name="KVV/Lines/Colored Blended" Path="Assets/KVV/Shaders/KVrAxis.shader" Type="Shader" Url="KVV/Shaders/KVrAxis" AutoLoad="false" />
+    <Asset Name="KVV/Hidden/SlinDev/Desktop/PostProcessing/FXAA" Path="Assets/KVV/Shaders/ShaderFXAA.shader" Type="Shader" Url="KVV/Shaders/ShaderFXAA" AutoLoad="false" />
+    <Asset Name="KVV/Bumped" Path="Assets/KVV/Shaders/bumped.shader" Type="Shader" Url="KVV/Shaders/bumped" AutoLoad="false" />
+    <Asset Name="KVV/Bumped Specular" Path="Assets/KVV/Shaders/bumpedspecular.shader" Type="Shader" Url="KVV/Shaders/bumpedspecular" AutoLoad="false" />
+    <Asset Name="KVV/Color Adjust" Path="Assets/KVV/Shaders/coloradjust.shader" Type="Shader" Url="KVV/Shaders/coloradjust" AutoLoad="false" />
+    <Asset Name="KVV/Alpha/Cutoff" Path="Assets/KVV/Shaders/cutoff.shader" Type="Shader" Url="KVV/Shaders/cutoff" AutoLoad="false" />
+    <Asset Name="KVV/Diffuse" Path="Assets/KVV/Shaders/diffuse.shader" Type="Shader" Url="KVV/Shaders/diffuse" AutoLoad="false" />
+    <Asset Name="KVV/Hidden/Edge Detect Normals" Path="Assets/KVV/Shaders/edn.shader" Type="Shader" Url="KVV/Shaders/edn" AutoLoad="false" />
+    <Asset Name="KVV/Hidden/Edge Detect Normals2" Path="Assets/KVV/Shaders/edn2.shader" Type="Shader" Url="KVV/Shaders/edn2" AutoLoad="false" />
+    <Asset Name="KVV/Emissive/Bumped Specular" Path="Assets/KVV/Shaders/emissivebumpedspecular.shader" Type="Shader" Url="KVV/Shaders/emissivebumpedspecular" AutoLoad="false" />
+    <Asset Name="KVV/Emissive/Specular" Path="Assets/KVV/Shaders/emissivespecular.shader" Type="Shader" Url="KVV/Shaders/emissivespecular" AutoLoad="false" />
+    <Asset Name="KVV/Hidden/SlinDev/Desktop/PostProcessing/FXAA" Path="Assets/KVV/Shaders/fxaa.shader" Type="Shader" Url="KVV/Shaders/fxaa" AutoLoad="false" />
+    <Asset Name="KVV/Outlined Diffuse" Path="Assets/KVV/Shaders/outline.shader" Type="Shader" Url="KVV/Shaders/outline" AutoLoad="false" />
+    <Asset Name="KVV/Specular" Path="Assets/KVV/Shaders/specular.shader" Type="Shader" Url="KVV/Shaders/specular" AutoLoad="false" />
+    <Asset Name="KVV/Unlit" Path="Assets/KVV/Shaders/unlit.shader" Type="Shader" Url="KVV/Shaders/unlit" AutoLoad="false" />
+  </Assets>
+  <Dependencies />
+</KSPBundleDefinition>
