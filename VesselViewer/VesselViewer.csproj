@@ -40,6 +40,9 @@
     <Reference Include="KAS">
       <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\KAS\Plugins\KAS.dll</HintPath>
     </Reference>
+    <Reference Include="KSPAssets">
+      <HintPath>..\Assets\Plugins\KSPAssets\KSPAssets.dll</HintPath>
+    </Reference>
     <Reference Include="KSPUtil">
       <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\KSPUtil.dll</HintPath>
     </Reference>
@@ -62,27 +65,15 @@
     <Compile Include="EditorLockManager.cs" />
     <Compile Include="KrsDebugHelper.cs" />
     <Compile Include="KrsUtils.cs" />
+    <Compile Include="KrsUtilsCore.cs" />
     <Compile Include="ShaderMaterial.cs" />
     <Compile Include="VesselElementViewOption.cs" />
     <Compile Include="VesselElementViewOptions.cs" />
     <Compile Include="VesselShot.cs" />
     <Compile Include="VesselShotUi.cs" />
-    <Compile Include="MaterialProperties.cs" />
     <Compile Include="ShaderMaterialProperty.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VesselViewConfig.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\bumped.shader" />
@@ -97,12 +88,9 @@
     <None Include="Resources\fxaa.shader" />
     <None Include="Resources\KVrAxis.shader" />
     <None Include="Resources\outline.shader" />
-    <None Include="Resources\ShaderFXAA.txt" />
+    <None Include="Resources\ShaderFXAA.shader" />
     <None Include="Resources\specular.shader" />
     <None Include="Resources\unlit.shader" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ShaderFXAA.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

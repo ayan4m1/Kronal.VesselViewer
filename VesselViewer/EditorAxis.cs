@@ -8,14 +8,13 @@ namespace VesselViewer
         public EditorVesselOverlays evo;
         public Material mat;
 
-
         private void CreateLineMaterial()
         {
             if (!mat)
             {
 
                 //KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType("JSI/RasterPropMonitor/rasterpropmonitor", typeof(Shader));
-                Material mat = new Material(KVrUtilsCore.getShaderById("KVV/Lines/Colored Blended"));
+                mat = new Material(KrsUtilsCore.getShaderById("KVV/Lines/Colored Blended"));
                 /*mat = new Material("Shader \"Lines/Colored Blended\" {" +
                     "SubShader { Pass { " +
                     "    Blend SrcAlpha OneMinusSrcAlpha " +
@@ -31,7 +30,7 @@ namespace VesselViewer
         private void Awake()
         {
             CreateLineMaterial();
-            this.evo = (EditorVesselOverlays)GameObject.FindObjectOfType(typeof(EditorVesselOverlays));
+            evo = (EditorVesselOverlays)FindObjectOfType(typeof(EditorVesselOverlays));
 
 #if DEBUG
             Debug.Log(string.Format("KVV: KVrEditorAxis Awake"));

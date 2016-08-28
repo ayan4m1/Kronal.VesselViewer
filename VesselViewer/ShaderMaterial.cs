@@ -1,14 +1,27 @@
-using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace VesselViewer
 {
-    internal class ShaderMaterial
+    class ShaderMaterial
     {
-        private readonly List<ShaderMaterialProperty> properties;
-        private readonly Dictionary<string, ShaderMaterialProperty> propertiesByName;
+        public Material Material { get; private set; }
+        public string Name { get; private set; }
+        public string FullName { get; private set; }
+        public bool Enabled { get; set; }
+        private List<ShaderMaterialProperty> properties;
+        private Dictionary<string, ShaderMaterialProperty> propertiesByName;
+        public ShaderMaterialProperty this[int propertyIndex]
+        {
+            get { return properties[propertyIndex]; }
+            set { properties[propertyIndex] = value; }
+        }
+        public ShaderMaterialProperty this[string propertyName]
+        {
+            get { return propertiesByName[propertyName]; }
+            set { propertiesByName[propertyName] = value; }
+        }
+        public int PropertyCount { get { return properties.Count; } }
 
         private ShaderMaterial()
         {
@@ -18,20 +31,25 @@ namespace VesselViewer
         }
 
 
-        public ShaderMaterial(string shaderName)
+        public ShaderMaterial(string contents)
             : this()
         {
-            Material = new Material(Shader.Find(shaderName));
+            /*
+            this.Material = new Material(contents);
             var p = @"Properties\s*\{[^\{\}]*(((?<Open>\{)[^\{\}]*)+((?<Close-Open>\})[^\{\}]*)+)*(?(Open)(?!))\}";
-            var m = Regex.Match(shaderName, p, RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            var m = Regex.Match(contents, p, RegexOptions.Multiline | RegexOptions.IgnoreCase);
             if (!m.Success)
             {
-                throw new Exception("Error parsing shader properties: " + Material.shader.name);
+                throw new Exception("Error parsing shader properties: " + this.Material.shader.name);
             }
-            p =
-                @"(?<name>\w*)\s*\(\s*""(?<displayname>[^""]*)""\s*,\s*(?<type>Float|Vector|Color|2D|Rect|Cube|Range\s*\(\s*(?<rangemin>[\d.]*)\s*,\s*(?<rangemax>[\d.]*)\s*\))\s*\)";
-            MonoBehaviour.print("1 " + m.Value);
-            foreach (Match match in Regex.Matches(m.Value, p))
+            p = @"(?<name>\w*)\s*\(\s*""(?<displayname>[^""]*)""\s*,\s*(?<type>Float|Vector|Color|2D|Rect|Cube|Range\s*\(\s*(?<rangemin>[\d.]*)\s*,\s*(?<rangemax>[\d.]*)\s*\))\s*\)";
+            
+    */
+#if DEBUG
+            //Debug.Log(string.Format("KVV: ShaderMaterial1 " + m.Value));
+#endif
+            /*
+            foreach(Match match in Regex.Matches(m.Value, p))
             {
                 ShaderMaterialProperty prop;
                 var name = match.Groups["name"].Value;
@@ -40,46 +58,24 @@ namespace VesselViewer
                 switch (typestr.ToUpperInvariant())
                 {
                     case "VECTOR":
-                        prop = new ShaderMaterialProperty.VectorProperty(Material, name, displayname);
+                        prop = new ShaderMaterialProperty.VectorProperty(this.Material, name, displayname);
                         break;
                     case "COLOR":
-                        prop = new ShaderMaterialProperty.ColorProperty(Material, name, displayname);
+                        prop = new ShaderMaterialProperty.ColorProperty(this.Material, name, displayname);
                         break;
                     case "2D":
                     case "RECT":
                     case "CUBE":
-                        prop = new ShaderMaterialProperty.TextureProperty(Material, name, displayname);
+                        prop = new ShaderMaterialProperty.TextureProperty(this.Material, name, displayname);
                         break;
                     default: /// Defaults to Range(*,*)
-                        prop = new ShaderMaterialProperty.FloatProperty(Material, name, displayname,
-                            float.Parse(match.Groups["rangemin"].Value), float.Parse(match.Groups["rangemax"].Value));
+                        prop = new ShaderMaterialProperty.FloatProperty(this.Material, name, displayname, float.Parse(match.Groups["rangemin"].Value), float.Parse(match.Groups["rangemax"].Value));
                         break;
                 }
-                properties.Add(prop);
-                propertiesByName[prop.Name] = prop;
+                this.properties.Add(prop);
+                this.propertiesByName[prop.Name] = prop;
             }
-        }
-
-        public Material Material { get; private set; }
-        public string Name { get; private set; }
-        public string FullName { get; private set; }
-        public bool Enabled { get; set; }
-
-        public ShaderMaterialProperty this[int propertyIndex]
-        {
-            get { return properties[propertyIndex]; }
-            set { properties[propertyIndex] = value; }
-        }
-
-        public ShaderMaterialProperty this[string propertyName]
-        {
-            get { return propertiesByName[propertyName]; }
-            set { propertiesByName[propertyName] = value; }
-        }
-
-        public int PropertyCount
-        {
-            get { return properties.Count; }
+            */
         }
 
         public ShaderMaterial Clone()

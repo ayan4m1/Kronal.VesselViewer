@@ -259,8 +259,8 @@ namespace VesselViewer
             control.uiFloatVals["shadowValPercent"] = GUILayout.HorizontalSlider(
                 control.uiFloatVals["shadowValPercent"], 0f, 300f, GUILayout.Width(153f));
             GUILayout.Space(1f);
-            GUILayout.Label(this.control.uiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));//GUILayout.Width(50f),
-            this.control.uiFloatVals["shadowVal"] = this.control.uiFloatVals["shadowValPercent"] * 1000f;//1000 is the max shadow val.  Looks like it takes a float so thats the max? 
+            GUILayout.Label(control.uiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));//GUILayout.Width(50f),
+            control.uiFloatVals["shadowVal"] = control.uiFloatVals["shadowValPercent"] * 1000f;//1000 is the max shadow val.  Looks like it takes a float so thats the max? 
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("File Quality", GUILayout.Width(68f));
@@ -270,7 +270,7 @@ namespace VesselViewer
             GUILayout.Space(1f);
             String disW = Math.Floor((control.uiFloatVals["imgPercent"] +1) * control.calculatedWidth).ToString();
             String disH = Math.Floor((control.uiFloatVals["imgPercent"] + 1) * control.calculatedHeight).ToString();
-            GUILayout.Label(String.Format("{0:0.#}", this.control.uiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH, GUILayout.Width(110f));//GUILayout.Width(50f),
+            GUILayout.Label(String.Format("{0:0.#}", control.uiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH, GUILayout.Width(110f));//GUILayout.Width(50f),
             control.uiFloatVals["imgPercent"] = control.uiFloatVals["imgPercent"] + 1;
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
@@ -280,7 +280,7 @@ namespace VesselViewer
             shaderTabCurrent = GUILayout.Toolbar(shaderTabCurrent, shaderTabsNames);
             GUILayout.EndHorizontal();
 
-            this.tabCurrent = 0;//used only in Update() be 0.  This will be removed later
+            tabCurrent = 0;//used only in Update() be 0.  This will be removed later
         }
 
         private void GUITabShader(string name)
@@ -298,7 +298,7 @@ namespace VesselViewer
             for (var i = 0; i < control.Effects[name].PropertyCount; ++i)
             {
 
-                var prop = this.control.Effects[name][i];
+                var prop = control.Effects[name][i];
                 prop.Match(
                     IfFloat: p =>
                     {
@@ -370,7 +370,7 @@ namespace VesselViewer
             var texture = control.Texture();
             if (texture)
             {
-                GUI.DrawTexture(this.orthoViewRect, texture, ScaleMode.ScaleToFit, false); // ALPHA BLENDING?! HEY HEY
+                GUI.DrawTexture(orthoViewRect, texture, ScaleMode.ScaleToFit, false); // ALPHA BLENDING?! HEY HEY
             }
         }
 
@@ -415,7 +415,7 @@ namespace VesselViewer
 #if DEBUG
             Debug.Log(string.Format("KVV: OnGUIAppLauncherReady {0}", KSP.UI.Screens.ApplicationLauncher.Ready.ToString()));
 #endif
-            if (KSP.UI.Screens.ApplicationLauncher.Ready)
+            if (ApplicationLauncher.Ready)
             {
                 KVVButton = ApplicationLauncher.Instance.AddModApplication(
                     onAppLaunchToggleOn,
@@ -424,10 +424,9 @@ namespace VesselViewer
                     DummyVoid,
                     DummyVoid,
                     DummyVoid,
-                    KSP.UI.Screens.ApplicationLauncher.AppScenes.SPH | KSP.UI.Screens.ApplicationLauncher.AppScenes.VAB,
-                    (Texture)GameDatabase.Instance.GetTexture("KronalUtils/Textures/icon_button", false));
-                control.setFacility();
-
+                    ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
+                    GameDatabase.Instance.GetTexture("KronalUtils/Textures/icon_button", false));
+                //control.setFacility();
             }
         }
 

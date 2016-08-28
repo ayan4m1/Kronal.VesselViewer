@@ -1,4 +1,5 @@
 ﻿using System;
+using KSP.IO;
 using UnityEngine;
 
 namespace VesselViewer
@@ -19,18 +20,17 @@ namespace VesselViewer
                 if (t != null)
                     return t;
             }
+            return null;
         }
 
         public static string GetResourceString(string name)
         {
-            if (KSP.IO.File.Exists<KVrUtils>(name))
+            if (File.Exists<KrsUtils>(name))
             {
-                return KSP.IO.File.ReadAllText<KVrUtils>(name);
+                return File.ReadAllText<KrsUtils>(name);
             }
-            else
-            {
-                return Properties.Resources.ResourceManager.GetString(name);
-            }
+            //return Properties.Resources.ResourceManager.GetString(name);
+            return string.Empty;
         }
 
         public static Vector3 ProjectVectorToPlane(Vector3 v, Vector3 planeNormal)
