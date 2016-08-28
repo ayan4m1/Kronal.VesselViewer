@@ -1,28 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEngine;
 using KSP.UI.Screens;
+using UnityEngine;
 
-namespace KronalUtils
+namespace VesselViewer
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    class KRSVesselShotUI : MonoBehaviour
+    class VesselShotUi : MonoBehaviour
     {
-        private KRSVesselShot control = new KRSVesselShot();
-        bool mySoftLock = false;//not to be confused with EditorLogic.softLock
+        private VesselShot control = new VesselShot();
+        bool mySoftLock; //not to be confused with EditorLogic.softLock
         private string inputLockIdent = "KVV-EditorLock";
         private Rect windowSize;
         private Vector2 windowScrollPos;
-        private int tabCurrent;//almost obsolete
+        private int tabCurrent; //almost obsolete
         private int shaderTabCurrent;
         private string[] shaderTabsNames;
         private Rect orthoViewRect;
         private GUIStyle guiStyleButtonAlert;
-        private KSP.UI.Screens.ApplicationLauncherButton KVVButton;
+        private ApplicationLauncherButton KVVButton;
         private bool visible;
-        private KRSEditorAxis axis;
+        private EditorAxis axis;
+
         private bool IsOnEditor()
         {
             return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedSceneIsEditor);
@@ -30,12 +29,12 @@ namespace KronalUtils
 
         public void Awake()
         {
-            this.windowSize = new Rect(256f, 50f, 300f, Screen.height - 50f);
+            windowSize = new Rect(256f, 50f, 300f, Screen.height - 50f);
             string[] configAppend = {"Part Config"};
-            this.shaderTabsNames = this.control.Effects.Keys.ToArray<string>();
-            this.shaderTabsNames = this.shaderTabsNames.Concat(configAppend).ToArray();
-            this.control.Config.onApply += ConfigApplied;
-            this.control.Config.onRevert += ConfigReverted;
+            shaderTabsNames = control.Effects.Keys.ToArray();
+            shaderTabsNames = shaderTabsNames.Concat(configAppend).ToArray();
+            control.Config.onApply += ConfigApplied;
+            control.Config.onRevert += ConfigReverted;
 
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
         }
@@ -44,7 +43,7 @@ namespace KronalUtils
         {
             if (KVVButton == null)
             {
-                this.OnGUIAppLauncherReady();
+                OnGUIAppLauncherReady();
             }
         }
 
@@ -58,8 +57,9 @@ namespace KronalUtils
             EditorLogic.fetch.Unlock(GetInstanceID().ToString());
             ButtonMode(true);
         }
-        
-        private void ButtonMode(bool isOn){
+
+        private void ButtonMode(bool isOn)
+        {
             if (isOn)
             {
                 EditorLogic.fetch.partPanelBtn.enabled = true;
@@ -81,23 +81,22 @@ namespace KronalUtils
                 EditorLogic.fetch.exitBtn.enabled = false;
                 EditorLogic.fetch.loadBtn.enabled = true;
                 EditorLogic.fetch.newBtn.enabled = true;
-                
             }
-
         }
 
         public void Update()
         {
-            if (this.tabCurrent == 0 && (this.orthoViewRect.width * this.orthoViewRect.height) > 1f)
+            if (tabCurrent == 0 && (orthoViewRect.width*orthoViewRect.height) > 1f)
             {
-                this.control.Update((int)this.orthoViewRect.width * 2, (int)this.orthoViewRect.height * 2);
+                control.Update((int) orthoViewRect.width*2, (int) orthoViewRect.height*2);
             }
         }
-        bool isMouseOver()//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
+
+        bool isMouseOver() //https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
         {
             Vector2 position = new Vector2(Input.mousePosition.x,
-                                           Screen.height - Input.mousePosition.y);
-            return this.windowSize.Contains(position);
+                Screen.height - Input.mousePosition.y);
+            return windowSize.Contains(position);
         }
         /* Whenever we mouseover our window, we need to lock the editor so we don't pick up
          * parts while dragging the window around */
@@ -118,20 +117,21 @@ namespace KronalUtils
                                                 | ControlTypes.EDITOR_GIZMO_TOOLS
                                                 | ControlTypes.EDITOR_ROOT_REFLOW;
 
-                    InputLockManager.SetControlLock(controlTypes, this.inputLockIdent);
+                    InputLockManager.SetControlLock(controlTypes, inputLockIdent);
                 }
                 else if (!mouseOver && mySoftLock)
                 {
                     mySoftLock = false;
-                    InputLockManager.RemoveControlLock(this.inputLockIdent);
+                    InputLockManager.RemoveControlLock(inputLockIdent);
                 }
             }
             else if (mySoftLock)
             {
                 mySoftLock = false;
-                InputLockManager.RemoveControlLock(this.inputLockIdent);
+                InputLockManager.RemoveControlLock(inputLockIdent);
             }
         }
+
         public void OnGUI()
         {
             switch (HighLogic.LoadedScene) {//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
@@ -142,9 +142,10 @@ namespace KronalUtils
                     /* don't show window during scene changes */
                     return;
             }
-            if (visible) 
+            if (visible)
             {
-                this.windowSize = GUILayout.Window(GetInstanceID(), this.windowSize, GUIWindow, "Kronal Vessel Viewer", HighLogic.Skin.window);
+                windowSize = GUILayout.Window(GetInstanceID(), windowSize, GUIWindow, "Kronal Vessel Viewer",
+                    HighLogic.Skin.window);
             }
 
             if (Event.current.type == EventType.Repaint)
@@ -156,9 +157,9 @@ namespace KronalUtils
         private void GUIWindow(int id)
         {
             GUILayout.BeginVertical("box");
-            GUIButtons();//draw top buttons
-            GUITabShader(this.shaderTabsNames[this.shaderTabCurrent]);//draw shader control buttons
-            GUITabView();//show the screenshot preview
+            GUIButtons(); //draw top buttons
+            GUITabShader(shaderTabsNames[shaderTabCurrent]); //draw shader control buttons
+            GUITabView(); //show the screenshot preview
             GUILayout.EndVertical();
             GUI.DragWindow();
         }
@@ -166,96 +167,97 @@ namespace KronalUtils
         private void GUIButtons()
         {
             control.uiBoolVals["saveTextureEvent"] = false;
-            if (this.guiStyleButtonAlert == null)
+            if (guiStyleButtonAlert == null)
             {
-                this.guiStyleButtonAlert = new GUIStyle(GUI.skin.button);
-                this.guiStyleButtonAlert.active.textColor = XKCDColors.BrightRed;
-                this.guiStyleButtonAlert.hover.textColor = XKCDColors.Red;
-                this.guiStyleButtonAlert.normal.textColor = XKCDColors.DarkishRed;
-                this.guiStyleButtonAlert.fontStyle = FontStyle.Bold;
-                this.guiStyleButtonAlert.fontSize = 8;
-                this.guiStyleButtonAlert.stretchWidth = false;
-                this.guiStyleButtonAlert.alignment = TextAnchor.MiddleCenter;
+                guiStyleButtonAlert = new GUIStyle(GUI.skin.button);
+                guiStyleButtonAlert.active.textColor = XKCDColors.BrightRed;
+                guiStyleButtonAlert.hover.textColor = XKCDColors.Red;
+                guiStyleButtonAlert.normal.textColor = XKCDColors.DarkishRed;
+                guiStyleButtonAlert.fontStyle = FontStyle.Bold;
+                guiStyleButtonAlert.fontSize = 8;
+                guiStyleButtonAlert.stretchWidth = false;
+                guiStyleButtonAlert.alignment = TextAnchor.MiddleCenter;
             }
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Offset View"))
             {
-                this.control.Explode();
+                control.Explode();
             }
 
             if (GUILayout.Button("Revert"))
             {
-                this.control.Config.Revert();
+                control.Config.Revert();
             }
 
             if (GUILayout.Button("Screenshot"))
             {
                 control.uiBoolVals["saveTextureEvent"] = true;
-                this.control.Update();
-                this.control.Execute();
+                control.Update();
+                control.Execute();
             }
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-            if (GUILayout.RepeatButton("ᴖ", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("ᴖ", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.direction = Quaternion.AngleAxis(-0.4f, this.control.Camera.transform.right) * this.control.direction;
+                control.direction = Quaternion.AngleAxis(-0.4f, control.Camera.transform.right)*control.direction;
             }
-            if (GUILayout.RepeatButton("ϲ", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("ϲ", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.RotateShip(-1f);
+                control.RotateShip(-1f);
             }
-            if (GUILayout.RepeatButton("▲", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("▲", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.position.y -= 0.1f;
+                control.position.y -= 0.1f;
             }
-            if (GUILayout.RepeatButton("ᴐ", GUILayout.Width(34) , GUILayout.Height(34))) //↶
+            if (GUILayout.RepeatButton("ᴐ", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.RotateShip(1f);
+                control.RotateShip(1f);
             }
-            if (GUILayout.RepeatButton("+", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("+", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.position.z += 0.1f;
+                control.position.z += 0.1f;
             }
-            if (GUILayout.Button("RESET", this.guiStyleButtonAlert, GUILayout.Width(34), GUILayout.Height(34)))
+            if (GUILayout.Button("RESET", guiStyleButtonAlert, GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.direction = Vector3.forward;
-                this.control.position = Vector3.zero;
+                control.direction = Vector3.forward;
+                control.position = Vector3.zero;
             }
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            if (GUILayout.RepeatButton("ᴗ", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("ᴗ", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.direction = Quaternion.AngleAxis(0.4f, this.control.Camera.transform.right) * this.control.direction;
+                control.direction = Quaternion.AngleAxis(0.4f, control.Camera.transform.right)*control.direction;
             }
-            if (GUILayout.RepeatButton("◄", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("◄", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.position.x += 0.1f;
+                control.position.x += 0.1f;
             }
-            if (GUILayout.RepeatButton("▼", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("▼", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.position.y += 0.1f;
+                control.position.y += 0.1f;
             }
-            if (GUILayout.RepeatButton("►", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("►", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.position.x -= 0.1f;
+                control.position.x -= 0.1f;
             }
-            if (GUILayout.RepeatButton("-", GUILayout.Width(34) , GUILayout.Height(34)))
+            if (GUILayout.RepeatButton("-", GUILayout.Width(34), GUILayout.Height(34)))
             {
-                this.control.position.z -= 0.1f;
+                control.position.z -= 0.1f;
             }
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
 
             GUILayout.BeginVertical();
-            this.control.Orthographic = GUILayout.Toggle(this.control.Orthographic, "Orthographic", GUILayout.ExpandWidth(true));
+            control.Orthographic = GUILayout.Toggle(control.Orthographic, "Orthographic", GUILayout.ExpandWidth(true));
             GUILayout.BeginHorizontal();
-            this.control.uiFloatVals["shadowVal"] = 0f;
+            control.uiFloatVals["shadowVal"] = 0f;
             GUILayout.Label("Shadow", GUILayout.Width(46f));
             GUILayout.Space(3f);
-            this.control.uiFloatVals["shadowValPercent"] = GUILayout.HorizontalSlider(this.control.uiFloatVals["shadowValPercent"], 0f, 300f, GUILayout.Width(153f));
+            control.uiFloatVals["shadowValPercent"] = GUILayout.HorizontalSlider(
+                control.uiFloatVals["shadowValPercent"], 0f, 300f, GUILayout.Width(153f));
             GUILayout.Space(1f);
             GUILayout.Label(this.control.uiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));//GUILayout.Width(50f),
             this.control.uiFloatVals["shadowVal"] = this.control.uiFloatVals["shadowValPercent"] * 1000f;//1000 is the max shadow val.  Looks like it takes a float so thats the max? 
@@ -263,7 +265,8 @@ namespace KronalUtils
             GUILayout.BeginHorizontal();
             GUILayout.Label("File Quality", GUILayout.Width(68f));
             GUILayout.Space(1f);
-            this.control.uiFloatVals["imgPercent"] = GUILayout.HorizontalSlider(this.control.uiFloatVals["imgPercent"]-1, 0f, 8f, GUILayout.Width(140f));
+            control.uiFloatVals["imgPercent"] = GUILayout.HorizontalSlider(control.uiFloatVals["imgPercent"] - 1, 0f, 8f,
+                GUILayout.Width(140f));
             GUILayout.Space(1f);
             String disW = Math.Floor((control.uiFloatVals["imgPercent"] +1) * control.calculatedWidth).ToString();
             String disH = Math.Floor((control.uiFloatVals["imgPercent"] + 1) * control.calculatedHeight).ToString();
@@ -274,14 +277,15 @@ namespace KronalUtils
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            this.shaderTabCurrent = GUILayout.Toolbar(this.shaderTabCurrent, this.shaderTabsNames);
+            shaderTabCurrent = GUILayout.Toolbar(shaderTabCurrent, shaderTabsNames);
             GUILayout.EndHorizontal();
-            
+
             this.tabCurrent = 0;//used only in Update() be 0.  This will be removed later
         }
+
         private void GUITabShader(string name)
         {
-            if (Array.IndexOf(this.control.Effects.Keys.ToArray<string>(), name) <= -1)//effect not found!
+            if (Array.IndexOf(control.Effects.Keys.ToArray(), name) <= -1) //effect not found!
             {
                 GUILayout.BeginHorizontal();
                 GUITabConfig();
@@ -289,24 +293,24 @@ namespace KronalUtils
                 return;
             }
             GUILayout.BeginHorizontal();
-            this.control.Effects[name].Enabled = GUILayout.Toggle(this.control.Effects[name].Enabled, "Active");
+            control.Effects[name].Enabled = GUILayout.Toggle(control.Effects[name].Enabled, "Active");
             GUILayout.EndHorizontal();
-            for (var i = 0; i < this.control.Effects[name].PropertyCount; ++i)
+            for (var i = 0; i < control.Effects[name].PropertyCount; ++i)
             {
 
                 var prop = this.control.Effects[name][i];
                 prop.Match(
-                    IfFloat: (p) =>
+                    IfFloat: p =>
                     {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(p.DisplayName, GUILayout.Width(60f));
                         p.Value = GUILayout.HorizontalSlider(p.Value, p.RangeMin, p.RangeMax);
                         GUILayout.Label(p.Value.ToString("F"), GUILayout.Width(30f));
-                        if (GUILayout.Button("RESET", this.guiStyleButtonAlert)) p.Value = p.DefaultValue;
+                        if (GUILayout.Button("RESET", guiStyleButtonAlert)) p.Value = p.DefaultValue;
                         GUILayout.EndHorizontal();
                         GUILayout.Space(2f);
                     },
-                    IfColor: (p) =>
+                    IfColor: p =>
                     {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(p.DisplayName, GUILayout.Width(60f));
@@ -323,11 +327,11 @@ namespace KronalUtils
                         GUILayout.Label(oldVal.g.ToString("F"), GUILayout.Width(40f));
                         GUILayout.Label(oldVal.b.ToString("F"), GUILayout.Width(40f));
                         GUILayout.EndVertical();
-                        if (GUILayout.Button("RESET", this.guiStyleButtonAlert)) p.Value = p.DefaultValue;
+                        if (GUILayout.Button("RESET", guiStyleButtonAlert)) p.Value = p.DefaultValue;
                         GUILayout.EndHorizontal();
                         GUILayout.Space(2f);
                     },
-                    IfVector: (p) =>
+                    IfVector: p =>
                     {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(p.DisplayName, GUILayout.Width(60f));
@@ -345,7 +349,7 @@ namespace KronalUtils
                         GUILayout.Label(oldVal.z.ToString("F"), GUILayout.Width(40f));
                         GUILayout.Label(oldVal.w.ToString("F"), GUILayout.Width(40f));
                         GUILayout.EndVertical();
-                        if (GUILayout.Button("RESET", this.guiStyleButtonAlert)) p.Value = p.DefaultValue;
+                        if (GUILayout.Button("RESET", guiStyleButtonAlert)) p.Value = p.DefaultValue;
                         GUILayout.EndHorizontal();
                         GUILayout.Space(2f);
                     });
@@ -355,14 +359,15 @@ namespace KronalUtils
         private void GUITabView()
         {
             GUILayout.BeginVertical();
-            control.uiBoolVals["canPreview"] = GUILayout.Toggle(control.uiBoolVals["canPreview"], "Auto-Preview", GUILayout.ExpandWidth(true));
+            control.uiBoolVals["canPreview"] = GUILayout.Toggle(control.uiBoolVals["canPreview"], "Auto-Preview",
+                GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
-            var r = GUILayoutUtility.GetRect(0, this.windowSize.width, 0, this.windowSize.height);
+            var r = GUILayoutUtility.GetRect(0, windowSize.width, 0, windowSize.height);
             if (Event.current.type == EventType.Repaint)
             {
-                this.orthoViewRect = r;
+                orthoViewRect = r;
             }
-            var texture = this.control.Texture();
+            var texture = control.Texture();
             if (texture)
             {
                 GUI.DrawTexture(this.orthoViewRect, texture, ScaleMode.ScaleToFit, false); // ALPHA BLENDING?! HEY HEY
@@ -371,8 +376,8 @@ namespace KronalUtils
 
         private void GUITabConfig()
         {
-            this.windowScrollPos = GUILayout.BeginScrollView(this.windowScrollPos, false, true);
-            foreach (var ol in this.control.Config.Config)
+            windowScrollPos = GUILayout.BeginScrollView(windowScrollPos, false, true);
+            foreach (var ol in control.Config.Config)
             {
                 GUILayout.BeginVertical("box");
                 GUILayout.Label("<b>" + ol.Name + "</b>", "box");
@@ -428,18 +433,20 @@ namespace KronalUtils
 
         void onAppLaunchToggleOn()
         {
-            this.axis = EditorLogic.fetch.editorCamera.gameObject.AddComponent<KRSEditorAxis>();
-            this.control.UpdateShipBounds();
+            axis = EditorLogic.fetch.editorCamera.gameObject.AddComponent<EditorAxis>();
+            control.UpdateShipBounds();
             visible = true;
         }
 
         void onAppLaunchToggleOff()
         {
-            EditorLogic.DestroyObject(this.axis);
+            DestroyObject(axis);
             visible = false;
         }
 
-        void DummyVoid() { }
+        void DummyVoid()
+        {
+        }
 
         void OnDestroy()
         {
@@ -447,8 +454,8 @@ namespace KronalUtils
             Debug.Log(string.Format("KVV: OnDestroy"));
 #endif
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
-            if (this.axis != null)
-                EditorLogic.DestroyObject(this.axis);
+            if (axis != null)
+                DestroyObject(axis);
 
             if (KVVButton != null)
                 ApplicationLauncher.Instance.RemoveModApplication(KVVButton);

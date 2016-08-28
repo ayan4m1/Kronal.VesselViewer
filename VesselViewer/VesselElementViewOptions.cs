@@ -5,6 +5,10 @@ namespace VesselViewer
 {
     internal class VesselElementViewOptions
     {
+        public string Name { get; private set; }
+        public Func<Part, bool> CanApply { get; private set; }
+        public List<VesselElementViewOption> Options { get; private set; }
+
         //constructor
         public VesselElementViewOptions(string name, Func<Part, bool> canApply)
         {
@@ -12,10 +16,6 @@ namespace VesselViewer
             CanApply = canApply;
             Options = new List<VesselElementViewOption>();
         }
-
-        public string Name { get; private set; }
-        public Func<Part, bool> CanApply { get; }
-        public List<VesselElementViewOption> Options { get; }
 
 
         internal void Apply(Part part)

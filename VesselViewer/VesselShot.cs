@@ -9,28 +9,12 @@ namespace VesselViewer
 {
     internal class VesselShot
     {
-        public readonly IDictionary<string, ShaderMaterial> Effects;
-        public int calculatedHeight = 1;
-        public int calculatedWidth = 1;
-
-        private Camera[] cameras;
-        internal Vector3 direction;
-        public string editorOrientation = "";
-        public ShaderMaterial MaterialBluePrint = new ShaderMaterial(File.ReadAllText<VesselShot>("blueprint"));
+        public ShaderMaterial MaterialFXAA = new ShaderMaterial("ShaderFXAA.txt");
         public ShaderMaterial MaterialColorAdjust = new ShaderMaterial(File.ReadAllText<VesselShot>("coloradjust"));
         public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial(File.ReadAllText<VesselShot>("edn2"));
-        public ShaderMaterial MaterialFXAA = new ShaderMaterial("FXAA");
-        private readonly Dictionary<string, Material> Materials;
-        private readonly int maxHeight = 1024;
-        private readonly int maxWidth = 1024;
+        public ShaderMaterial MaterialBluePrint = new ShaderMaterial(File.ReadAllText<VesselShot>("blueprint"));
 
-        private readonly Dictionary<Part, Dictionary<MeshRenderer, Shader>> PartShaderLibrary =
-            new Dictionary<Part, Dictionary<MeshRenderer, Shader>>();
-
-        internal Vector3 position;
-        private RenderTexture rt;
-
-        private readonly List<string> Shaders = new List<string>
+        private List<string> Shaders = new List<string>
         {
             "edn",
             "cutoff",
@@ -43,14 +27,10 @@ namespace VesselViewer
             "emissivebumpedspecular"
         };
 
-        private Bounds shipBounds;
-        internal float storedShadowDistance;
-
-        public Dictionary<string, bool> uiBoolVals = new Dictionary<string, bool>
-        {
-            {"canPreview", true},
-            {"saveTextureEvent", false}
-        };
+        private Dictionary<string, Material> Materials;
+        public readonly IDictionary<string, ShaderMaterial> Effects;
+        public int calculatedWidth = 1;
+        public int calculatedHeight = 1;
 
         public Dictionary<string, float> uiFloatVals = new Dictionary<string, float>
         {
@@ -60,12 +40,72 @@ namespace VesselViewer
             {"bgR", 1f},
             {"bgG", 1f},
             {"bgB", 1f},
-            {"bgA", 1f},
+            {"bgA", 1f}, //RGBA
             {"bgR_", 0f},
             {"bgG_", 0.07f},
             {"bgB_", 0.11f},
-            {"bgA_", 1f}
+            {"bgA_", 1f} //RGBA defaults //00406E 0,64,110 -> reduced due to color adjust shader
         };
+
+        public Dictionary<string, bool> uiBoolVals = new Dictionary<string, bool>
+        {
+            {"canPreview", true},
+            {"saveTextureEvent", false}
+        };
+
+        private Camera[] cameras;
+        private RenderTexture rt;
+        private int maxWidth = 1024;
+        private int maxHeight = 1024;
+        private Bounds shipBounds;
+        internal Camera Camera { get; private set; }
+        internal Vector3 direction;
+        internal Vector3 position;
+
+        internal float storedShadowDistance;
+            // keeps original shadow distance. Used to toggle shadows off during rendering.
+
+        internal bool EffectsAntiAliasing { get; set; } //consider obsolete?
+
+        internal bool Orthographic
+        {
+            get
+            {
+                return Camera == cameras[0];
+                    //if this currently selected camera is the first camera then Orthographic is true
+            }
+            set
+            {
+                Camera = cameras[value ? 0 : 1];
+                    //if setting to true use the first camera (which is ortho camera). if false use the non-ortho
+            }
+        }
+
+        internal VesselViewConfig Config { get; private set; }
+
+        internal IShipconstruct Ship
+        {
+            get
+            {
+                if (EditorLogic.fetch)
+                {
+                    return EditorLogic.fetch.ship;
+                }
+                return null;
+            }
+        }
+
+        internal string ShipName
+        {
+            get
+            {
+                if (EditorLogic.fetch && EditorLogic.fetch.ship != null)
+                {
+                    return MakeValidFileName(EditorLogic.fetch.ship.shipName);
+                }
+                return "vessel";
+            }
+        }
 
         public VesselShot()
         {
@@ -92,52 +132,13 @@ namespace VesselViewer
             GameEvents.onPartRemove.Add(PartModified);
         }
 
-        internal Camera Camera { get; private set; }
-        internal bool EffectsAntiAliasing { get; set; }
-
-        internal bool Orthographic
-        {
-            get { return Camera == cameras[0]; }
-            set { Camera = cameras[value ? 0 : 1]; }
-        }
-
-        internal VesselViewConfig Config { get; }
-
-        internal IShipconstruct Ship
-        {
-            get
-            {
-                if (EditorLogic.fetch)
-                {
-                    return EditorLogic.fetch.ship;
-                }
-                return null;
-            }
-        }
-
-        internal string ShipName
-        {
-            get
-            {
-                if (EditorLogic.fetch && EditorLogic.fetch.ship != null)
-                {
-                    return MakeValidFileName(EditorLogic.fetch.ship.shipName);
-                }
-                return "vessel";
-            }
-        }
-
         ~VesselShot()
         {
             GameEvents.onPartAttach.Remove(PartModified);
             GameEvents.onPartRemove.Remove(PartModified);
         }
 
-        public void setFacility()
-        {
-            editorOrientation = EditorLogic.fetch.ship.shipFacility == EditorFacility.SPH ? "SPH" : "VAB";
-        }
-
+        // Sets up Orthographic and Perspective camera.
         private void SetupCameras()
         {
             cameras = new Camera[2];
@@ -157,14 +158,11 @@ namespace VesselViewer
         public void RotateShip(float degrees)
         {
             Vector3 rotateAxis;
-            if (editorOrientation != "SPH" && editorOrientation != "VAB")
-            {
-                setFacility();
-            }
 
-            if (editorOrientation == "SPH")
+            if (HighLogic.LoadedScene == GameScenes.EDITOR)
             {
                 Debug.Log(string.Format("Rotating in SPH: {0}", degrees));
+                //rotateAxis = EditorLogic.startPod.transform.forward;
                 rotateAxis = EditorLogic.RootPart.transform.forward;
             }
             else
@@ -197,9 +195,9 @@ namespace VesselViewer
             var model = part.transform.Find("model");
             if (!model) return;
 
-            var MeshRendererLibrary = new Dictionary<MeshRenderer, Shader>();
+            Dictionary<MeshRenderer, Shader> MeshRendererLibrary = new Dictionary<MeshRenderer, Shader>();
 
-            foreach (var mr in model.GetComponentsInChildren<MeshRenderer>())
+            foreach (MeshRenderer mr in model.GetComponentsInChildren<MeshRenderer>())
             {
                 Material mat;
                 if (Materials.TryGetValue(mr.material.shader.name, out mat))
@@ -221,6 +219,9 @@ namespace VesselViewer
                 PartShaderLibrary.Add(part, MeshRendererLibrary);
             }
         }
+
+        Dictionary<Part, Dictionary<MeshRenderer, Shader>> PartShaderLibrary =
+            new Dictionary<Part, Dictionary<MeshRenderer, Shader>>();
 
         private void RestorePartShaders(Part part)
         {
@@ -279,9 +280,12 @@ namespace VesselViewer
 
         public void GenTexture(Vector3 direction, int imageWidth = -1, int imageHeight = -1)
         {
-            foreach (Part p in EditorLogic.fetch.ship)
+            if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
-                ReplacePartShaders(p);
+                foreach (Part p in EditorLogic.fetch.ship)
+                {
+                    ReplacePartShaders(p);
+                }
             }
 
             var minusDir = -direction;
@@ -298,8 +302,8 @@ namespace VesselViewer
 
             Camera.transform.position = shipBounds.center;
 
-            //if (HighLogic.LoadedScene == GameScenes.SPH)
-            if (editorOrientation == "SPH")
+            // This sets the horizon before the camera looks to vehicle center.
+            if (HighLogic.LoadedScene == GameScenes.FLIGHT)
             {
                 Camera.transform.rotation = Quaternion.AngleAxis(90, Vector3.right);
             }
@@ -307,8 +311,12 @@ namespace VesselViewer
             {
                 Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.right);
             }
+            // this.Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.up); // original 
 
+            // Apply angle Vector to camera.
             Camera.transform.Translate(minusDir*Camera.nearClipPlane);
+            // this.Camera.transform.Translate(Vector3.Scale(minusDir, this.shipBounds.extents) + minusDir * this.Camera.nearClipPlane); // original 
+            // Deckblad: There was a lot of math here when all we needed to do is establish the rotation of the camera.
 
             // Face camera to vehicle.
             Camera.transform.LookAt(shipBounds.center);
@@ -319,25 +327,35 @@ namespace VesselViewer
             var width = Vector3.Scale(binormal, shipBounds.size).magnitude;
             var depth = Vector3.Scale(minusDir, shipBounds.size).magnitude;
 
-            width += Config.procFairingOffset;
-            depth += Config.procFairingOffset;
+            width += Config.procFairingOffset; // get the distance of fairing offset
+            depth += Config.procFairingOffset; // for the farClipPlane
 
-            var positionOffset = (shipBounds.size.magnitude - position.z)/
-                                 (2f*Mathf.Tan(Mathf.Deg2Rad*Camera.fieldOfView/2f));
+            // Find distance from vehicle.
+            float positionOffset = (shipBounds.size.magnitude - position.z)/
+                                   (2f*Mathf.Tan(Mathf.Deg2Rad*Camera.fieldOfView/2f));
+            // float positionOffset = (height - this.position.z) / (2f * Mathf.Tan(Mathf.Deg2Rad * this.Camera.fieldOfView / 2f)) - depth * 0.5f; // original 
+            // Use magnitude of bounds instead of height and remove vehicle bounds depth for uniform distance from vehicle. Height and depth of vehicle change in relation to the camera as we move around the vehicle.
 
+            // Translate and Zoom camera
             Camera.transform.Translate(new Vector3(position.x, position.y, -positionOffset));
-            var distanceToShip = Vector3.Distance(Camera.transform.position, shipBounds.center);
+
+            // Get distance from camera to ship. Apply to farClipPlane
+            float distanceToShip = Vector3.Distance(Camera.transform.position, shipBounds.center);
+
+            // Set far clip plane to just past size of vehicle.
             Camera.farClipPlane = distanceToShip + Camera.nearClipPlane + depth*2 + 1;
                 // 1 for the first rotation vector
+            // this.Camera.farClipPlane = Camera.nearClipPlane + positionOffset + this.position.magnitude + depth; // original
 
             if (Orthographic)
             {
                 Camera.orthographicSize = (Math.Max(height, width) - position.z)/2f;
                     // Use larger of ship height or width.
+                // this.Camera.orthographicSize = (height - this.position.z) / 2f; // original
             }
 
-            var isSaving = false;
-            var tmpAspect = width/height;
+            bool isSaving = false;
+            float tmpAspect = width/height;
             if (height >= width)
             {
                 calculatedHeight = maxHeight;
@@ -349,6 +367,7 @@ namespace VesselViewer
                 calculatedHeight = (int) (calculatedWidth/tmpAspect);
             }
 
+            // If we're saving, use full resolution.
             if (imageWidth <= 0 || imageHeight <= 0)
             {
                 // Constrain image to max size with respect to aspect
@@ -365,8 +384,8 @@ namespace VesselViewer
             rt = RenderTexture.GetTemporary(imageWidth, imageHeight, 24, RenderTextureFormat.ARGB32,
                 RenderTextureReadWrite.sRGB);
 
-            var fileWidth = imageWidth;
-            var fileHeight = imageHeight;
+            int fileWidth = imageWidth;
+            int fileHeight = imageHeight;
             if (isSaving)
             {
                 fileWidth =
@@ -383,6 +402,8 @@ namespace VesselViewer
                 Camera.depthTextureMode = DepthTextureMode.DepthNormals;
                 Camera.Render();
                 Camera.targetTexture = null;
+                //Graphics.Blit(this.rt, this.rt, MaterialColorAdjust.Material);
+                //Graphics.Blit(this.rt, this.rt, MaterialEdgeDetect.Material);
                 foreach (var fx in Effects)
                 {
                     if (fx.Value.Enabled)
@@ -391,10 +412,16 @@ namespace VesselViewer
                     }
                 }
             }
-
-            foreach (Part p in EditorLogic.fetch.ship)
+            if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
             {
-                RestorePartShaders(p);
+                foreach (Part p in EditorLogic.fetch.ship)
+                {
+                    RestorePartShaders(p);
+                }
+            }
+            if (uiBoolVals["saveTextureEvent"])
+            {
+                Resources.UnloadUnusedAssets(); //fix memory leak?
             }
         }
 
@@ -470,6 +497,7 @@ namespace VesselViewer
                 return;
             }
 
+            //var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
             var dir = EditorLogic.RootPart.transform.TransformDirection(direction);
 
             storedShadowDistance = QualitySettings.shadowDistance;

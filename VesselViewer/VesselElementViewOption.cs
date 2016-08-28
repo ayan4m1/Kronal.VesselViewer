@@ -4,9 +4,13 @@ namespace VesselViewer
 {
     internal class VesselElementViewOption
     {
+        public string Name { get; private set; }
+        public bool IsToggle { get; private set; }
+        public bool HasParam { get; private set; }
+        public Action<VesselElementViewOptions, VesselElementViewOption, Part> Apply { get; private set; }
         public bool valueActive;
-        public string valueFormat;
         public float valueParam;
+        public string valueFormat;
 
         //constructor
         public VesselElementViewOption(string name, bool isToggle, bool hasParam,
@@ -22,10 +26,5 @@ namespace VesselViewer
             valueParam = defaultValueParam;
             this.valueFormat = valueFormat;
         }
-
-        public string Name { get; private set; }
-        public bool IsToggle { get; private set; }
-        public bool HasParam { get; private set; }
-        public Action<VesselElementViewOptions, VesselElementViewOption, Part> Apply { get; }
     }
 }

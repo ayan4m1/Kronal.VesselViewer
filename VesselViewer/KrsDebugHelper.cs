@@ -11,7 +11,7 @@ namespace VesselViewer
 
         public static T Module<T>(this Part part) where T : PartModule
         {
-            return (T)part.Modules[typeof(T).Name];
+            return (T) part.Modules[typeof(T).Name];
         }
 
         public static void DbgBegin(this object self, string name = "")
