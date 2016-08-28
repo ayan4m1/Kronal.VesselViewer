@@ -9,35 +9,29 @@ namespace VesselViewer
 {
     class BundleIndex
     {
-        //KSPAssets.AssetDefinition[] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
-        /*
-        public Dictionary<string, string> ShaderData = new Dictionary<string, string> { 
-            { "MaterialFXAA", KronalUtils.Properties.Resources.ShaderFXAA }, 
-            { "MaterialColorAdjust", KSP.IO.File.ReadAllText<KVrVesselShot>("coloradjust") }, 
-            { "MaterialEdgeDetect", KSP.IO.File.ReadAllText<KVrVesselShot>("edn2") }, 
-            { "MaterialBluePrint", KSP.IO.File.ReadAllText<KVrVesselShot>("blueprint") }, 
-        };*/
         internal static Dictionary<string, Font> loadedFonts = new Dictionary<string, Font>();
         internal static Dictionary<string, Shader> loadedShaders = new Dictionary<string, Shader>();
+
         public Dictionary<string, string> ShaderData = new Dictionary<string, string> {
             { "MaterialFXAA", "KVV/Hidden/SlinDev/Desktop/PostProcessing/FXAA" },
             { "MaterialColorAdjust", "KVV/Color Adjust" },
             { "MaterialEdgeDetect", "KVV/Hidden/Edge Detect Normals2" }
         };
+
         public Dictionary<string, AssetLoader> KVrShaders = new Dictionary<string, AssetLoader>();
         public Dictionary<string, AssetLoader> KVrShaders2 = new Dictionary<string, AssetLoader>();
         public BundleIndex()
         {
+
             /*
-            this.Effects = new Dictionary<string, ShaderMaterial>() {
+             Effects = new Dictionary<string, ShaderMaterial>() {
                 {"Color Adjust",MaterialColorAdjust},
                 {"Edge Detect", MaterialEdgeDetect},
                 {"Blue Print", MaterialBluePrint},
                 {"FXAA", MaterialFXAA}
-            };*/
+            };
+            this.*/
             //KSPAssets.AssetDefinition[] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
-            
-
 
             InitShaders();
         }
@@ -45,37 +39,34 @@ namespace VesselViewer
         {
 
 #if DEBUG
-            Debug.Log(string.Format("KVV: InitShaders 1: {0}", KSPAssets.Loaders.AssetLoader.ApplicationRootPath));
+            Debug.Log(string.Format("KVV: InitShaders 1: {0}", AssetLoader.ApplicationRootPath));
 #endif
             
-            string KVrPath = KrsUtilsCore.ModRoot();
-            string KVrAssetPath = Path.GetDirectoryName(KVrPath + Path.DirectorySeparatorChar);
-#if DEBUG
-            Debug.Log(string.Format("KVV: InitShaders 2 KVrPath{0} \n\t- Directory  Path.GetFileName( KVrAssetPath ...) {1} ", KVrPath, Path.GetFileName(KVrAssetPath + Path.DirectorySeparatorChar + "kvv")));//, String.Join("\n\t- ", System.IO.Directory.GetFiles(KVrPath))
-#endif
+            var modPath = KrsUtilsCore.ModRoot();
             var assetPath = Assembly.GetAssembly(typeof(BundleIndex)).FullName + "/kvv";
-            AssetDefinition[] KVrShaders = AssetLoader.GetAssetDefinitionsWithType(assetPath, typeof(Shader)); //path to kvv.ksp
-            if (KVrShaders == null || KVrShaders.Length == 0)
+            var shaderDefs = AssetLoader.GetAssetDefinitionsWithType(assetPath, typeof(Shader));
+            if (shaderDefs == null || shaderDefs.Length == 0)
             {
-                Debug.Log(string.Format("KVV: Failed to load Asset Package kvv.ksp in {0}.", KVrPath));
-            }else {
-                AssetLoader.LoadAssets(ShadersLoaded, KVrShaders[0]);
+                Debug.Log(string.Format("KVV: Failed to load Asset Package kvv.ksp in {0}.", modPath));
+            } else {
+                AssetLoader.LoadAssets(ShadersLoaded, shaderDefs[0]);
             }
-            
+
 #if DEBUG
             Debug.Log(string.Format("KVV: InitShaders 4"));
 #endif
-            /*
-            foreach (KeyValuePair<string, string> itKey in ShaderData)
+
+            /*foreach (KeyValuePair<string, string> itKey in ShaderData)
             {
-                //KSPAssets.AssetDefinition[itKey.Key] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
-                //KSPAssets.Loaders.AssetLoader newShad = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(ShaderData[itKey.Key], typeof(Shader));
-                //KVrShaders.Add(itKey.Key, new KSPAssets.Loaders.AssetLoader());
-                //KVrShaders[itKey.Key] = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(ShaderData[itKey.Key], typeof(UnityEngine.Shader));
-                // KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
+                KSPAssets.AssetDefinition[itKey.Key] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
+                KSPAssets.Loaders.AssetLoader newShad = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(ShaderData[itKey.Key], typeof(Shader));
+                KVrShaders.Add(itKey.Key, new KSPAssets.Loaders.AssetLoader());
+                KVrShaders[itKey.Key] = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(ShaderData[itKey.Key], typeof(UnityEngine.Shader));
+                //KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
             }*/
         }
-        public Shader gettShaderById(string idIn)
+
+        public Shader getShaderById(string idIn)
         {
             return (loadedShaders.ContainsKey(idIn) ? loadedShaders [idIn] : null);
         }

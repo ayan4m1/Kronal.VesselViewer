@@ -425,8 +425,7 @@ namespace VesselViewer
                     DummyVoid,
                     DummyVoid,
                     ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
-                    GameDatabase.Instance.GetTexture("KronalUtils/Textures/icon_button", false));
-                //control.setFacility();
+                    GameDatabase.Instance.GetTexture("VesselViewer/Textures/icon_button", false));
             }
         }
 

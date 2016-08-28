@@ -7,7 +7,7 @@ namespace VesselViewer
     class KrsUtilsCore : MonoBehaviour
     {
         public static BundleIndex AssetIndex = new BundleIndex();
-        public static string ModPath = Path.Combine(Directory.GetParent(KSPUtil.ApplicationRootPath).ToString() + Path.DirectorySeparatorChar + "GameData" + Path.DirectorySeparatorChar, "KronalUtils");
+        public static string ModPath = Path.Combine(Directory.GetParent(KSPUtil.ApplicationRootPath).ToString() + Path.DirectorySeparatorChar + "GameData" + Path.DirectorySeparatorChar, "VesselViewer");
         public static string SavePath = Path.Combine(Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(), "Screenshots");
         public static string ModRoot()
         {
@@ -16,10 +16,6 @@ namespace VesselViewer
         public static string ModExport()
         {
             return SavePath;
-        }
-        public static Shader getShaderById(string idIn)
-        {
-            return AssetIndex.gettShaderById(idIn);
         }
     }
 }

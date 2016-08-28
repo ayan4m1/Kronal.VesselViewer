@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using KSPAssets.Loaders;
 
 namespace VesselViewer
 {
@@ -12,9 +13,7 @@ namespace VesselViewer
         {
             if (!mat)
             {
-
-                //KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType("JSI/RasterPropMonitor/rasterpropmonitor", typeof(Shader));
-                mat = new Material(KrsUtilsCore.getShaderById("KVV/Lines/Colored Blended"));
+                mat = new Material(KrsUtilsCore.AssetIndex.getShaderById("KVV/Lines/Colored Blended"));
                 /*mat = new Material("Shader \"Lines/Colored Blended\" {" +
                     "SubShader { Pass { " +
                     "    Blend SrcAlpha OneMinusSrcAlpha " +

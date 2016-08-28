@@ -9,10 +9,10 @@ namespace VesselViewer
 {
     internal class VesselShot
     {
-        public ShaderMaterial MaterialFXAA = new ShaderMaterial("ShaderFXAA.txt");
-        public ShaderMaterial MaterialColorAdjust = new ShaderMaterial(File.ReadAllText<VesselShot>("coloradjust"));
-        public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial(File.ReadAllText<VesselShot>("edn2"));
-        public ShaderMaterial MaterialBluePrint = new ShaderMaterial(File.ReadAllText<VesselShot>("blueprint"));
+        public ShaderMaterial MaterialFxaa = new ShaderMaterial("ShaderFXAA.txt");
+        public ShaderMaterial MaterialColorAdjust = new ShaderMaterial("coloradjust");
+        public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial("edn2");
+        public ShaderMaterial MaterialBluePrint = new ShaderMaterial("blueprint");
 
         private List<string> Shaders = new List<string>
         {
@@ -118,7 +118,7 @@ namespace VesselViewer
                 {"Color Adjust", MaterialColorAdjust},
                 {"Edge Detect", MaterialEdgeDetect},
                 {"Blue Print", MaterialBluePrint},
-                {"FXAA", MaterialFXAA}
+                {"FXAA", MaterialFxaa}
             };
             Effects["Blue Print"].Enabled = false;
             uiFloatVals["bgR"] = uiFloatVals["bgR_"];
@@ -176,16 +176,16 @@ namespace VesselViewer
 
         private void LoadShaders()
         {
-            foreach (var shaderFilename in Shaders)
+            foreach (var shaderPath in Shaders)
             {
                 try
                 {
-                    var mat = new Material(Shader.Find(shaderFilename));
+                    var mat = new Material(KrsUtilsCore.AssetIndex.getShaderById(shaderPath));
                     Materials[mat.shader.name] = mat;
                 }
                 catch
                 {
-                    MonoBehaviour.print("[ERROR] " + GetType().Name + " : Failed to load " + shaderFilename);
+                    MonoBehaviour.print("[ERROR] " + GetType().Name + " : Failed to load " + shaderPath);
                 }
             }
         }
