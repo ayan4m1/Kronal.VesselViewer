@@ -132,10 +132,6 @@ namespace KronalUtils
         {   
             editorOrientation = (EditorLogic.fetch.ship.shipFacility == EditorFacility.SPH ? "SPH" : "VAB");
         }
-<<<<<<< HEAD:src/KVrVesselShot.cs
-=======
-
->>>>>>> Includes Patches for hotfix.  0.0.4 (0.25) Full Update GameData.zip:src/KRSVesselShot.cs
         private void SetupCameras()
         {
             this.cameras = new Camera[2];
@@ -299,12 +295,8 @@ namespace KronalUtils
             this.Camera.backgroundColor = new Color(uiFloatVals["bgR"], uiFloatVals["bgG"], uiFloatVals["bgB"], uiFloatVals["bgA"]);
             this.Camera.transform.position = this.shipBounds.center;
 
-<<<<<<< HEAD:src/KVrVesselShot.cs
             //if (HighLogic.LoadedScene == GameScenes.SPH)
             if (editorOrientation == "SPH")
-=======
-            if (HighLogic.LoadedScene == GameScenes.SPH)
->>>>>>> Includes Patches for hotfix.  0.0.4 (0.25) Full Update GameData.zip:src/KRSVesselShot.cs
             {
                 this.Camera.transform.rotation = Quaternion.AngleAxis(90, Vector3.right);
             }
@@ -412,10 +404,7 @@ namespace KronalUtils
             int fileHeight = this.rt.height;
 #if DEBUG
             Debug.Log(string.Format("KVV: SIZE: {0} x {1}", fileWidth, fileHeight));
-<<<<<<< HEAD:src/KVrVesselShot.cs
 #endif
-=======
->>>>>>> Includes Patches for hotfix.  0.0.4 (0.25) Full Update GameData.zip:src/KRSVesselShot.cs
 
             Texture2D screenShot = new Texture2D(fileWidth, fileHeight, TextureFormat.ARGB32, false);
             
@@ -478,14 +467,9 @@ namespace KronalUtils
                 return;
             }
 
-<<<<<<< HEAD:src/KVrVesselShot.cs
             //var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
             var dir = EditorLogic.RootPart.transform.TransformDirection(this.direction);
             
-=======
-            var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
-
->>>>>>> Includes Patches for hotfix.  0.0.4 (0.25) Full Update GameData.zip:src/KRSVesselShot.cs
             storedShadowDistance = QualitySettings.shadowDistance;
             QualitySettings.shadowDistance = (this.uiFloatVals["shadowVal"] < 0f ? 0f : this.uiFloatVals["shadowVal"]);
             
@@ -495,7 +479,7 @@ namespace KronalUtils
             
         }
 
-        internal Texture Texture()
+        internal Texture Texture()//not used?!
         {
             
             //if (!((EditorLogic.startPod) && (this.Ship != null)))
