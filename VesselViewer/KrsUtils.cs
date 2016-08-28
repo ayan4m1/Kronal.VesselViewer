@@ -1,64 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.IO;
 using UnityEngine;
-using KSP;
 
-namespace KronalUtils
+namespace VesselViewer
 {
-    static class KRSHelper
-    {
-        public static T Module<T>(this Part part) where T : PartModule
-        {
-            return (T)part.Modules[typeof(T).Name];
-        }
-
-        private static Stack<KeyValuePair<string, Stopwatch>> dbgStack = new Stack<KeyValuePair<string, Stopwatch>>();
-
-        public static void DbgBegin(this object self, string name = "")
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            dbgStack.Push(new KeyValuePair<string, Stopwatch>(name, stopwatch));
-            stopwatch.Start();
-        }
-
-        public static void DbgEnd(this object self)
-        {
-            var e = dbgStack.Pop();
-            var name = e.Key;
-            var stopwatch = e.Value;
-            stopwatch.Stop();
-            TimeSpan ts = stopwatch.Elapsed;
-            string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:000}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds);
-            //MonoBehaviour.print("[DEBUG] Event: " + name + "   DT: " + elapsedTime);
-        }
-    }
-
-    class KVrUtils
+    internal class KrsUtils
     {
         public static Type FindType(string qualifiedTypeName)
         {
-            Type t = Type.GetType(qualifiedTypeName);
+            var t = Type.GetType(qualifiedTypeName);
 
             if (t != null)
             {
                 return t;
             }
-            else
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    t = asm.GetType(qualifiedTypeName);
-                    if (t != null)
-                        return t;
-                }
-                return null;
+                t = asm.GetType(qualifiedTypeName);
+                if (t != null)
+                    return t;
             }
         }
 
@@ -94,6 +53,7 @@ namespace KronalUtils
         {
             return (((value - min) % (max - min)) + (max - min)) % (max - min) + min;
         }
+
         /*
         public static KeyCode[] BindableKeys = {
             KeyCode.Alpha0,

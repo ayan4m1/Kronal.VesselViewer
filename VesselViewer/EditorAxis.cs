@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
 using UnityEngine;
 
-namespace KronalUtils
+namespace VesselViewer
 {
-    class KVrEditorAxis: MonoBehaviour
+    internal class EditorAxis : MonoBehaviour
     {
-        public Material mat;
         public EditorVesselOverlays evo;
+        public Material mat;
 
-        
-        void CreateLineMaterial()
+
+        private void CreateLineMaterial()
         {
             if (!mat)
             {
@@ -32,7 +28,7 @@ namespace KronalUtils
             }
         }
 
-        void Awake()
+        private void Awake()
         {
             CreateLineMaterial();
             this.evo = (EditorVesselOverlays)GameObject.FindObjectOfType(typeof(EditorVesselOverlays));
@@ -41,14 +37,15 @@ namespace KronalUtils
             Debug.Log(string.Format("KVV: KVrEditorAxis Awake"));
 #endif
         }
-        void OnPostRender(Camera cameraArg)
+
+        private void OnPostRender(Camera cameraArg)
         {
-            if (!this.evo.CoMmarker.gameObject.activeInHierarchy) return;
+            if (!evo.CoMmarker.gameObject.activeInHierarchy) return;
 
             GL.PushMatrix();
             mat.SetPass(0);
             GL.Begin(GL.LINES);
-            var t = this.evo.CoMmarker.posMarkerObject.transform;
+            var t = evo.CoMmarker.posMarkerObject.transform;
             Vector3 dirInterval;
             int dirAxis;
             dirAxis = -Math.Sign(Vector3.Dot(cameraArg.transform.forward, t.forward));
