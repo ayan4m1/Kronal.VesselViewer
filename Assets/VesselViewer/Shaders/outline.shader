@@ -1,4 +1,4 @@
-Shader "KVV/Outlined Diffuse" 
+Shader "Outlined Diffuse" 
 { 
    Properties 
    { 

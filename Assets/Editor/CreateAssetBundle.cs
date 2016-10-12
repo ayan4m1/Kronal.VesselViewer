@@ -1,22 +1,32 @@
-﻿namespace UnityEditor
+﻿using UnityEngine;
+using UnityEditor;
+using System.Collections;
+
+public class AssetBundleCompiler
 {
-    public class CreateAssetBundle
+    internal static BuildAssetBundleOptions Options = BuildAssetBundleOptions.UncompressedAssetBundle |
+                                                      BuildAssetBundleOptions.ForceRebuildAssetBundle;
+    [MenuItem("Assets/Build AssetBundles OSX")]
+    static void BuildAllAssetBundlesOSX()
     {
-        [MenuItem("Tests/Create/Create From Asset Database")]
-        public static void CreateNewAssetBundleFromAssetDatabase()
-        {
-            string outputPath = "AssetBundles";
-            //AssetBundleBuild[] buildOpts = new AssetBundleBuild[2];
-            //buildOpts.assetNames;
-            //buildOpts.assetBundleVariant;
-            //buildOpts.assetBundleName;
-            //AssetBundleBuild.assetNames AssetBundleBuild.assetBundleVariant AssetBundleBuild.assetBundleName
-            //EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneWindows);//BuildTarget.StandaloneWindows BuildTarget.Android , BuildAssetBundleOptions.None, BuildTarget.StandaloneOSXUniversal
-            BuildPipeline.BuildAssetBundles(outputPath, BuildAssetBundleOptions.UncompressedAssetBundle  | BuildAssetBundleOptions.ForceRebuildAssetBundle);
-            //BuildPipeline.BuildAssetBundles(outputPath, BuildAssetBundleOptions.UncompressedAssetBundle | BuildAssetBundleOptions.DeterministicAssetBundle | BuildAssetBundleOptions.ForceRebuildAssetBundle);
-            //BuildPipeline.BuildAssetBundles(outputPath, BuildAssetBundleOptions.UncompressedAssetBundle);
-            //BuildPipeline.BuildAssetBundles(outputPath, BuildAssetBundleOptions.UncompressedAssetBundle, EditorUserBuildSettings.activeBuildTarget);//
-        }
+        BuildPipeline.BuildAssetBundles("AssetBundles", Options, BuildTarget.StandaloneOSXUniversal);
     }
 
+    [MenuItem("Assets/Build AssetBundles Lin")]
+    static void BuildAllAssetBundlesLin()
+    {
+        BuildPipeline.BuildAssetBundles("AssetBundles", Options, BuildTarget.StandaloneLinux);
+    }
+
+    [MenuItem("Assets/Build AssetBundles Win32")]
+    static void BuildAllAssetBundlesWin32()
+    {
+        BuildPipeline.BuildAssetBundles("AssetBundles", Options, BuildTarget.StandaloneWindows);
+    }
+
+    [MenuItem("Assets/Build AssetBundles Win64")]
+    static void BuildAllAssetBundlesWin64()
+    {
+        BuildPipeline.BuildAssetBundles("AssetBundles", Options, BuildTarget.StandaloneWindows64);
+    }
 }
