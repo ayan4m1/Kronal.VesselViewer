@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace VesselViewer
@@ -6,86 +7,48 @@ namespace VesselViewer
     class ShaderMaterial
     {
         public Material Material { get; private set; }
-        public string Name { get; private set; }
-        public string FullName { get; private set; }
+        public string Name { get; }
+        public string FullName { get; }
         public bool Enabled { get; set; }
-        private List<ShaderMaterialProperty> properties;
-        private Dictionary<string, ShaderMaterialProperty> propertiesByName;
+
+        private readonly List<ShaderMaterialProperty> _properties;
+        private readonly Dictionary<string, ShaderMaterialProperty> _propertiesByName;
+
         public ShaderMaterialProperty this[int propertyIndex]
         {
-            get { return properties[propertyIndex]; }
-            set { properties[propertyIndex] = value; }
+            get { return _properties[propertyIndex]; }
+            set { _properties[propertyIndex] = value; }
         }
+
         public ShaderMaterialProperty this[string propertyName]
         {
-            get { return propertiesByName[propertyName]; }
-            set { propertiesByName[propertyName] = value; }
+            get { return _propertiesByName[propertyName]; }
+            set { _propertiesByName[propertyName] = value; }
         }
-        public int PropertyCount { get { return properties.Count; } }
 
-        private ShaderMaterial()
+        public int PropertyCount => _properties.Count;
+
+        public ShaderMaterial(string name, string fullName)
         {
-            properties = new List<ShaderMaterialProperty>();
-            propertiesByName = new Dictionary<string, ShaderMaterialProperty>();
+            Name = name;
+            FullName = fullName;
             Enabled = true;
-        }
-
-
-        public ShaderMaterial(string contents)
-            : this()
-        {
-            /*
-            this.Material = new Material(contents);
-            var p = @"Properties\s*\{[^\{\}]*(((?<Open>\{)[^\{\}]*)+((?<Close-Open>\})[^\{\}]*)+)*(?(Open)(?!))\}";
-            var m = Regex.Match(contents, p, RegexOptions.Multiline | RegexOptions.IgnoreCase);
-            if (!m.Success)
-            {
-                throw new Exception("Error parsing shader properties: " + this.Material.shader.name);
-            }
-            p = @"(?<name>\w*)\s*\(\s*""(?<displayname>[^""]*)""\s*,\s*(?<type>Float|Vector|Color|2D|Rect|Cube|Range\s*\(\s*(?<rangemin>[\d.]*)\s*,\s*(?<rangemax>[\d.]*)\s*\))\s*\)";
-            
-    */
-#if DEBUG
-            //Debug.Log(string.Format("KVV: ShaderMaterial1 " + m.Value));
-#endif
-            /*
-            foreach(Match match in Regex.Matches(m.Value, p))
-            {
-                ShaderMaterialProperty prop;
-                var name = match.Groups["name"].Value;
-                var displayname = match.Groups["displayname"].Value;
-                var typestr = match.Groups["type"].Value;
-                switch (typestr.ToUpperInvariant())
-                {
-                    case "VECTOR":
-                        prop = new ShaderMaterialProperty.VectorProperty(this.Material, name, displayname);
-                        break;
-                    case "COLOR":
-                        prop = new ShaderMaterialProperty.ColorProperty(this.Material, name, displayname);
-                        break;
-                    case "2D":
-                    case "RECT":
-                    case "CUBE":
-                        prop = new ShaderMaterialProperty.TextureProperty(this.Material, name, displayname);
-                        break;
-                    default: /// Defaults to Range(*,*)
-                        prop = new ShaderMaterialProperty.FloatProperty(this.Material, name, displayname, float.Parse(match.Groups["rangemin"].Value), float.Parse(match.Groups["rangemax"].Value));
-                        break;
-                }
-                this.properties.Add(prop);
-                this.propertiesByName[prop.Name] = prop;
-            }
-            */
+            _properties = new List<ShaderMaterialProperty>();
+            _propertiesByName = new Dictionary<string, ShaderMaterialProperty>();
         }
 
         public ShaderMaterial Clone()
         {
-            var result = new ShaderMaterial();
-            result.Material = new Material(Material);
-            foreach (var p in properties)
+            var result = new ShaderMaterial(Name, FullName)
             {
-                result.properties.Add(p.Clone());
+                Material = new Material(Material)
+            };
+
+            foreach (var p in _properties)
+            {
+                result._properties.Add(p.Clone());
             }
+
             return result;
         }
     }

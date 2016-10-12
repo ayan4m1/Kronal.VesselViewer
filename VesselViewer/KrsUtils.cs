@@ -6,6 +6,8 @@ namespace VesselViewer
 {
     internal class KrsUtils
     {
+        public static BundleIndex Index = new BundleIndex();
+
         public static Type FindType(string qualifiedTypeName)
         {
             var t = Type.GetType(qualifiedTypeName);

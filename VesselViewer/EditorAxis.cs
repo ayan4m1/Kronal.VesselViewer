@@ -13,14 +13,7 @@ namespace VesselViewer
         {
             if (!mat)
             {
-                mat = new Material(KrsUtilsCore.AssetIndex.getShaderById("KVV/Lines/Colored Blended"));
-                /*mat = new Material("Shader \"Lines/Colored Blended\" {" +
-                    "SubShader { Pass { " +
-                    "    Blend SrcAlpha OneMinusSrcAlpha " +
-                    "    ZWrite Off ZTest Always Cull Off Fog { Mode Off } " +
-                    "    BindChannels {" +
-                    "      Bind \"vertex\", vertex Bind \"color\", color }" +
-                    "} } }");*/
+                mat = new Material(KrsUtils.Index.getShaderById("KVV/Lines/Colored Blended"));
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 mat.shader.hideFlags = HideFlags.HideAndDontSave;
             }

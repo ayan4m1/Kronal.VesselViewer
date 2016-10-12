@@ -3,73 +3,36 @@ using System.IO;
 using System.Reflection;
 using KSPAssets;
 using KSPAssets.Loaders;
+using UniLinq;
 using UnityEngine;
 
 namespace VesselViewer
 {
-    class BundleIndex
+    public class BundleIndex
     {
-        internal static Dictionary<string, Font> loadedFonts = new Dictionary<string, Font>();
-        internal static Dictionary<string, Shader> loadedShaders = new Dictionary<string, Shader>();
-
-        public Dictionary<string, string> ShaderData = new Dictionary<string, string> {
-            { "MaterialFXAA", "KVV/Hidden/SlinDev/Desktop/PostProcessing/FXAA" },
-            { "MaterialColorAdjust", "KVV/Color Adjust" },
-            { "MaterialEdgeDetect", "KVV/Hidden/Edge Detect Normals2" }
-        };
-
-        public Dictionary<string, AssetLoader> KVrShaders = new Dictionary<string, AssetLoader>();
-        public Dictionary<string, AssetLoader> KVrShaders2 = new Dictionary<string, AssetLoader>();
+        internal static Dictionary<string, Font> Fonts = new Dictionary<string, Font>();
+        internal static Dictionary<string, Shader> Shaders = new Dictionary<string, Shader>();
+        
         public BundleIndex()
         {
+            AssetLoader.LoadedBundleDefinitions.ForEach((bundle) => Debug.Log(bundle.path));
 
-            /*
-             Effects = new Dictionary<string, ShaderMaterial>() {
-                {"Color Adjust",MaterialColorAdjust},
-                {"Edge Detect", MaterialEdgeDetect},
-                {"Blue Print", MaterialBluePrint},
-                {"FXAA", MaterialFXAA}
-            };
-            this.*/
-            //KSPAssets.AssetDefinition[] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
-
-            InitShaders();
-        }
-        private void InitShaders()
-        {
-
-#if DEBUG
-            Debug.Log(string.Format("KVV: InitShaders 1: {0}", AssetLoader.ApplicationRootPath));
-#endif
-            
-            var modPath = KrsUtilsCore.ModRoot();
-            var assetPath = Assembly.GetAssembly(typeof(BundleIndex)).FullName + "/kvv";
-            var shaderDefs = AssetLoader.GetAssetDefinitionsWithType(assetPath, typeof(Shader));
+            var shaderDefs = AssetLoader.GetAssetDefinitionsWithType("vesselviewer", typeof(Shader));
             if (shaderDefs == null || shaderDefs.Length == 0)
             {
-                Debug.Log(string.Format("KVV: Failed to load Asset Package kvv.ksp in {0}.", modPath));
-            } else {
+                Debug.Log("KVV: Failed to load Asset Package.");
+            }
+            else
+            {
                 AssetLoader.LoadAssets(ShadersLoaded, shaderDefs[0]);
             }
-
-#if DEBUG
-            Debug.Log(string.Format("KVV: InitShaders 4"));
-#endif
-
-            /*foreach (KeyValuePair<string, string> itKey in ShaderData)
-            {
-                KSPAssets.AssetDefinition[itKey.Key] KVrShaders = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
-                KSPAssets.Loaders.AssetLoader newShad = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(ShaderData[itKey.Key], typeof(Shader));
-                KVrShaders.Add(itKey.Key, new KSPAssets.Loaders.AssetLoader());
-                KVrShaders[itKey.Key] = KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(ShaderData[itKey.Key], typeof(UnityEngine.Shader));
-                //KSPAssets.Loaders.AssetLoader.GetAssetDefinitionsWithType(KronalUtils.Properties.Resources.ShaderFXAA, typeof(Shader));
-            }*/
         }
 
         public Shader getShaderById(string idIn)
         {
-            return (loadedShaders.ContainsKey(idIn) ? loadedShaders [idIn] : null);
+            return (Shaders.ContainsKey(idIn) ? Shaders[idIn] : null);
         }
+
         private void ShadersLoaded(AssetLoader.Loader loader) // thanks moarDV - https://github.com/Mihara/RasterPropMonitor/blob/5c9fa8b259dd391892fe121724519413ccbb6b59/RasterPropMonitor/Core/UtilityFunctions.cs
         {
 #if DEBUG
@@ -145,20 +108,18 @@ namespace VesselViewer
                             Debug.Log(string.Format("KVV: Shader {0} - unsupported in this configuration", shaders[j].name));
 #endif
                         }
-                        loadedShaders[shaders[j].name] = shaders[j];
+                        Shaders[shaders[j].name] = shaders[j];
                     }
                     for (int j = 0; j < fonts.Length; ++j)
                     {
 #if DEBUG
                         Debug.Log(string.Format("KVV: Adding KSP-Bundle-included font {0} / {1}", fonts[j].name, fonts[j].fontSize));
 #endif
-                        loadedFonts[fonts[j].name] = fonts[j];
+                        Fonts[fonts[j].name] = fonts[j];
                     }
                     return;
                 }
             }
-
-            Debug.Log("KVV: Failed to load shaders  - how did this callback execute?");
         }
     }
 

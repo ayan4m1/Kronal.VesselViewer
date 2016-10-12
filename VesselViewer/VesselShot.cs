@@ -9,11 +9,6 @@ namespace VesselViewer
 {
     internal class VesselShot
     {
-        public ShaderMaterial MaterialFxaa = new ShaderMaterial("ShaderFXAA.txt");
-        public ShaderMaterial MaterialColorAdjust = new ShaderMaterial("coloradjust");
-        public ShaderMaterial MaterialEdgeDetect = new ShaderMaterial("edn2");
-        public ShaderMaterial MaterialBluePrint = new ShaderMaterial("blueprint");
-
         private List<string> Shaders = new List<string>
         {
             "edn",
@@ -63,7 +58,7 @@ namespace VesselViewer
         internal Vector3 position;
 
         internal float storedShadowDistance;
-            // keeps original shadow distance. Used to toggle shadows off during rendering.
+        // keeps original shadow distance. Used to toggle shadows off during rendering.
 
         internal bool EffectsAntiAliasing { get; set; } //consider obsolete?
 
@@ -72,12 +67,12 @@ namespace VesselViewer
             get
             {
                 return Camera == cameras[0];
-                    //if this currently selected camera is the first camera then Orthographic is true
+                //if this currently selected camera is the first camera then Orthographic is true
             }
             set
             {
                 Camera = cameras[value ? 0 : 1];
-                    //if setting to true use the first camera (which is ortho camera). if false use the non-ortho
+                //if setting to true use the first camera (which is ortho camera). if false use the non-ortho
             }
         }
 
@@ -115,12 +110,13 @@ namespace VesselViewer
             Materials = new Dictionary<string, Material>();
             Effects = new Dictionary<string, ShaderMaterial>
             {
-                {"Color Adjust", MaterialColorAdjust},
-                {"Edge Detect", MaterialEdgeDetect},
-                {"Blue Print", MaterialBluePrint},
-                {"FXAA", MaterialFxaa}
+                {"Color Adjust", new ShaderMaterial("MaterialColorAdjust", "Kornal/ColorAdjust")},
+                {"Edge Detect", new ShaderMaterial("MaterialEdgeDetect", "Hidden/EdgeDetect")},
+                {"Blueprint", new ShaderMaterial("MaterialBlueprint", "Kronal/BluePrint")},
+                {"FXAA", new ShaderMaterial("MaterialFXAA", "Hidden/FXAA3")}
             };
-            Effects["Blue Print"].Enabled = false;
+
+            Effects["Blueprint"].Enabled = false;
             uiFloatVals["bgR"] = uiFloatVals["bgR_"];
             uiFloatVals["bgG"] = uiFloatVals["bgG_"];
             uiFloatVals["bgB"] = uiFloatVals["bgB_"];
@@ -180,7 +176,7 @@ namespace VesselViewer
             {
                 try
                 {
-                    var mat = new Material(KrsUtilsCore.AssetIndex.getShaderById(shaderPath));
+                    var mat = new Material(KrsUtils.Index.getShaderById(shaderPath));
                     Materials[mat.shader.name] = mat;
                 }
                 catch
@@ -290,7 +286,7 @@ namespace VesselViewer
 
             var minusDir = -direction;
             Camera.clearFlags = CameraClearFlags.SolidColor;
-            if (Effects["Blue Print"].Enabled)
+            if (Effects["Blueprint"].Enabled)
             {
                 Camera.backgroundColor = new Color(1f, 1f, 1f, 0.0f);
             }
@@ -344,13 +340,13 @@ namespace VesselViewer
 
             // Set far clip plane to just past size of vehicle.
             Camera.farClipPlane = distanceToShip + Camera.nearClipPlane + depth*2 + 1;
-                // 1 for the first rotation vector
+            // 1 for the first rotation vector
             // this.Camera.farClipPlane = Camera.nearClipPlane + positionOffset + this.position.magnitude + depth; // original
 
             if (Orthographic)
             {
                 Camera.orthographicSize = (Math.Max(height, width) - position.z)/2f;
-                    // Use larger of ship height or width.
+                // Use larger of ship height or width.
                 // this.Camera.orthographicSize = (height - this.position.z) / 2f; // original
             }
 
