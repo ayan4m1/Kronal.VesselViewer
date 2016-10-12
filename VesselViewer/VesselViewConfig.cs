@@ -271,7 +271,7 @@ namespace VesselViewer
             if (module.isDecoupled) return;
             if (!module.staged) return;
             if (string.IsNullOrEmpty(module.explosiveNodeID)) return;
-            var an = module.explosiveNodeID == "srf" ? part.srfAttachNode : part.findAttachNode(module.explosiveNodeID);
+            var an = module.explosiveNodeID == "srf" ? part.srfAttachNode : part.FindAttachNode(module.explosiveNodeID);
             if (an == null || an.attachedPart == null) return;
             var distance = o.valueParam;
             if (part.name.Contains("FairingCone"))
@@ -295,7 +295,7 @@ namespace VesselViewer
         {
             var module = part.Module<ModuleDockingNode>();
             if (string.IsNullOrEmpty(module.referenceAttachNode)) return;
-            var an = part.findAttachNode(module.referenceAttachNode);
+            var an = part.FindAttachNode(module.referenceAttachNode);
             if (!an.attachedPart) return;
             var distance = o.valueParam;
             Part partToBeMoved;
@@ -341,7 +341,7 @@ namespace VesselViewer
             {
                 var module = part.Module<KASModulePort>(); //this creates KAS Dependancy.  
                 if (string.IsNullOrEmpty(module.attachNode)) return;
-                var an = part.findAttachNode(module.attachNode);
+                var an = part.FindAttachNode(module.attachNode);
                 if (!an.attachedPart) return;
                 var distance = o.valueParam;
                 Part partToBeMoved;
