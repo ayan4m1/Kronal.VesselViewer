@@ -4,6 +4,12 @@ Yet another fork off of [bigorangemachine](https://github.com/bigorangemachine/k
 
 Currently, it loads in KSP 1.2.0 but most of the shader-related aspects are not working as intended. Specifically, the blueprint and color-adjust shaders need to be rewritten because the existing versions were precompiled and so not supported with Unity 5.4, which is a requirement for KSP 1.2.
 
+### Usage
+
+1) Run `package.bat` in an msbuild-enabled command prompt.
+
+2) Copy the resulting `.\GameData` directory into your KSP install directory.
+
 ==========================================
 
 ### Bigorangemachine's Fork
