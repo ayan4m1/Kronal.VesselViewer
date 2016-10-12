@@ -1,20 +1,8 @@
-Kerbal Space Program [as posted on Curse](http://www.curse.com/ksp-mods/kerbal/224287-kronal-vessel-viewer-kvv-exploded-ship-view) 
+VesselViewer - Continuation of Kronal Vessel Viewer [as posted on Curse](http://www.curse.com/ksp-mods/kerbal/224287-kronal-vessel-viewer-kvv-exploded-ship-view) 
 
-As Scene:
-* Scott Manley's [Video](https://www.youtube.com/watch?v=Y9csr64ghh4)
-* [PC Gamer](http://www.pcgamer.com/the-best-kerbal-space-program-mods-2/)
-* [Fridge Magnet](https://www.reddit.com/r/KerbalSpaceProgram/comments/3akcf8/kerbal_fridge_magnets_103/) projects
-* Youtube: FrunfWorks [KVV How To](https://www.youtube.com/watch?v=_zbi8FL5B20)
+Yet another fork off of [bigorangemachine](https://github.com/bigorangemachine/ksp-kronalutils) to make the mod compatible with KSP 1.2.0.
 
-Check [this forks release page](https://github.com/bigorangemachine/ksp-kronalutils/releases) for a download alternative
-
-Developers who wish to contribute should [branch dev-master](https://github.com/bigorangemachine/ksp-kronalutils/tree/dev-master).
-
-`git clone git@github.com:bigorangemachine/ksp-kronalutils.git`
-
-`cd ksp-kronalutils/`
-
-`git checkout dev-master`
+Currently, it loads in KSP 1.2.0 but most of the shader-related aspects are not working as intended. Specifically, the blueprint and color-adjust shaders need to be rewritten because the existing versions were precompiled and so not supported with Unity 5.4, which is a requirement for KSP 1.2.
 
 ==========================================
 
