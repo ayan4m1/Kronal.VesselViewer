@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace VesselViewer
@@ -28,7 +27,7 @@ namespace VesselViewer
             var stopwatch = e.Value;
             stopwatch.Stop();
             var ts = stopwatch.Elapsed;
-            var elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:000}",
+            var elapsedTime = string.Format("{0:00}:{1:00}:{2:00}.{3:000}",
                 ts.Hours, ts.Minutes, ts.Seconds,
                 ts.Milliseconds);
             //MonoBehaviour.print("[DEBUG] Event: " + name + "   DT: " + elapsedTime);

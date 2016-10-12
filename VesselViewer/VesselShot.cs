@@ -3,13 +3,29 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using File = KSP.IO.File;
 
 namespace VesselViewer
 {
     internal class VesselShot
     {
-        private List<string> Shaders = new List<string>
+        public readonly IDictionary<string, ShaderMaterial> Effects;
+        public int calculatedHeight = 1;
+        public int calculatedWidth = 1;
+
+        private Camera[] cameras;
+        internal Vector3 direction;
+
+        private readonly Dictionary<string, Material> Materials;
+        private readonly int maxHeight = 1024;
+        private readonly int maxWidth = 1024;
+
+        private readonly Dictionary<Part, Dictionary<MeshRenderer, Shader>> PartShaderLibrary =
+            new Dictionary<Part, Dictionary<MeshRenderer, Shader>>();
+
+        internal Vector3 position;
+        private RenderTexture rt;
+
+        private readonly List<string> Shaders = new List<string>
         {
             "edn",
             "cutoff",
@@ -22,10 +38,15 @@ namespace VesselViewer
             "emissivebumpedspecular"
         };
 
-        private Dictionary<string, Material> Materials;
-        public readonly IDictionary<string, ShaderMaterial> Effects;
-        public int calculatedWidth = 1;
-        public int calculatedHeight = 1;
+        private Bounds shipBounds;
+
+        internal float storedShadowDistance;
+
+        public Dictionary<string, bool> uiBoolVals = new Dictionary<string, bool>
+        {
+            {"canPreview", true},
+            {"saveTextureEvent", false}
+        };
 
         public Dictionary<string, float> uiFloatVals = new Dictionary<string, float>
         {
@@ -41,66 +62,6 @@ namespace VesselViewer
             {"bgB_", 0.11f},
             {"bgA_", 1f} //RGBA defaults //00406E 0,64,110 -> reduced due to color adjust shader
         };
-
-        public Dictionary<string, bool> uiBoolVals = new Dictionary<string, bool>
-        {
-            {"canPreview", true},
-            {"saveTextureEvent", false}
-        };
-
-        private Camera[] cameras;
-        private RenderTexture rt;
-        private int maxWidth = 1024;
-        private int maxHeight = 1024;
-        private Bounds shipBounds;
-        internal Camera Camera { get; private set; }
-        internal Vector3 direction;
-        internal Vector3 position;
-
-        internal float storedShadowDistance;
-        // keeps original shadow distance. Used to toggle shadows off during rendering.
-
-        internal bool EffectsAntiAliasing { get; set; } //consider obsolete?
-
-        internal bool Orthographic
-        {
-            get
-            {
-                return Camera == cameras[0];
-                //if this currently selected camera is the first camera then Orthographic is true
-            }
-            set
-            {
-                Camera = cameras[value ? 0 : 1];
-                //if setting to true use the first camera (which is ortho camera). if false use the non-ortho
-            }
-        }
-
-        internal VesselViewConfig Config { get; private set; }
-
-        internal IShipconstruct Ship
-        {
-            get
-            {
-                if (EditorLogic.fetch)
-                {
-                    return EditorLogic.fetch.ship;
-                }
-                return null;
-            }
-        }
-
-        internal string ShipName
-        {
-            get
-            {
-                if (EditorLogic.fetch && EditorLogic.fetch.ship != null)
-                {
-                    return MakeValidFileName(EditorLogic.fetch.ship.shipName);
-                }
-                return "vessel";
-            }
-        }
 
         public VesselShot()
         {
@@ -126,6 +87,47 @@ namespace VesselViewer
 
             GameEvents.onPartAttach.Add(PartModified);
             GameEvents.onPartRemove.Add(PartModified);
+        }
+
+        internal Camera Camera { get; private set; }
+        // keeps original shadow distance. Used to toggle shadows off during rendering.
+
+        internal bool EffectsAntiAliasing { get; set; } //consider obsolete?
+
+        internal bool Orthographic
+        {
+            get
+            {
+                return Camera == cameras[0];
+                //if this currently selected camera is the first camera then Orthographic is true
+            }
+            set
+            {
+                Camera = cameras[value ? 0 : 1];
+                //if setting to true use the first camera (which is ortho camera). if false use the non-ortho
+            }
+        }
+
+        internal VesselViewConfig Config { get; }
+
+        internal IShipconstruct Ship
+        {
+            get
+            {
+                if (EditorLogic.fetch)
+                    return EditorLogic.fetch.ship;
+                return null;
+            }
+        }
+
+        internal string ShipName
+        {
+            get
+            {
+                if (EditorLogic.fetch && (EditorLogic.fetch.ship != null))
+                    return MakeValidFileName(EditorLogic.fetch.ship.shipName);
+                return "vessel";
+            }
         }
 
         ~VesselShot()
@@ -173,17 +175,15 @@ namespace VesselViewer
         private void LoadShaders()
         {
             foreach (var shaderPath in Shaders)
-            {
                 try
                 {
-                    var mat = new Material(KrsUtils.Index.getShaderById(shaderPath));
+                    var mat = new Material(KrsUtils.Index.GetShaderById(shaderPath));
                     Materials[mat.shader.name] = mat;
                 }
                 catch
                 {
                     MonoBehaviour.print("[ERROR] " + GetType().Name + " : Failed to load " + shaderPath);
                 }
-            }
         }
 
         private void ReplacePartShaders(Part part)
@@ -191,17 +191,15 @@ namespace VesselViewer
             var model = part.transform.Find("model");
             if (!model) return;
 
-            Dictionary<MeshRenderer, Shader> MeshRendererLibrary = new Dictionary<MeshRenderer, Shader>();
+            var MeshRendererLibrary = new Dictionary<MeshRenderer, Shader>();
 
-            foreach (MeshRenderer mr in model.GetComponentsInChildren<MeshRenderer>())
+            foreach (var mr in model.GetComponentsInChildren<MeshRenderer>())
             {
                 Material mat;
                 if (Materials.TryGetValue(mr.material.shader.name, out mat))
                 {
                     if (!MeshRendererLibrary.ContainsKey(mr))
-                    {
                         MeshRendererLibrary.Add(mr, mr.material.shader);
-                    }
                     mr.material.shader = mat.shader;
                 }
                 else
@@ -211,13 +209,8 @@ namespace VesselViewer
                 }
             }
             if (!PartShaderLibrary.ContainsKey(part))
-            {
                 PartShaderLibrary.Add(part, MeshRendererLibrary);
-            }
         }
-
-        Dictionary<Part, Dictionary<MeshRenderer, Shader>> PartShaderLibrary =
-            new Dictionary<Part, Dictionary<MeshRenderer, Shader>>();
 
         private void RestorePartShaders(Part part)
         {
@@ -226,16 +219,12 @@ namespace VesselViewer
 
             Dictionary<MeshRenderer, Shader> MeshRendererLibrary;
             if (PartShaderLibrary.TryGetValue(part, out MeshRendererLibrary))
-            {
                 foreach (var mr in model.GetComponentsInChildren<MeshRenderer>())
                 {
                     Shader OldShader;
                     if (MeshRendererLibrary.TryGetValue(mr, out OldShader))
-                    {
                         mr.material.shader = OldShader;
-                    }
                 }
-            }
         }
 
         private void PartModified(GameEvents.HostTargetAction<Part, Part> data)
@@ -246,13 +235,9 @@ namespace VesselViewer
         internal void UpdateShipBounds()
         {
             if ((Ship != null) && (Ship.Parts.Count > 0))
-            {
                 shipBounds = CalcShipBounds();
-            }
             else
-            {
                 shipBounds = new Bounds(EditorLogic.fetch.editorBounds.center, Vector3.zero);
-            }
             shipBounds.Expand(1f);
         }
 
@@ -260,12 +245,8 @@ namespace VesselViewer
         {
             var result = new Bounds(Ship.Parts[0].transform.position, Vector3.zero);
             foreach (var current in Ship.Parts)
-            {
                 if (current.collider && !current.Modules.Contains("LaunchClamp"))
-                {
                     result.Encapsulate(current.collider.bounds);
-                }
-            }
             return result;
         }
 
@@ -277,36 +258,24 @@ namespace VesselViewer
         public void GenTexture(Vector3 direction, int imageWidth = -1, int imageHeight = -1)
         {
             if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
-            {
-                foreach (Part p in EditorLogic.fetch.ship)
-                {
+                foreach (var p in EditorLogic.fetch.ship)
                     ReplacePartShaders(p);
-                }
-            }
 
             var minusDir = -direction;
             Camera.clearFlags = CameraClearFlags.SolidColor;
             if (Effects["Blueprint"].Enabled)
-            {
                 Camera.backgroundColor = new Color(1f, 1f, 1f, 0.0f);
-            }
             else
-            {
                 Camera.backgroundColor = new Color(uiFloatVals["bgR"], uiFloatVals["bgG"], uiFloatVals["bgB"],
                     uiFloatVals["bgA"]);
-            }
 
             Camera.transform.position = shipBounds.center;
 
             // This sets the horizon before the camera looks to vehicle center.
             if (HighLogic.LoadedScene == GameScenes.FLIGHT)
-            {
                 Camera.transform.rotation = Quaternion.AngleAxis(90, Vector3.right);
-            }
             else
-            {
                 Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.right);
-            }
             // this.Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.up); // original 
 
             // Apply angle Vector to camera.
@@ -327,8 +296,8 @@ namespace VesselViewer
             depth += Config.procFairingOffset; // for the farClipPlane
 
             // Find distance from vehicle.
-            float positionOffset = (shipBounds.size.magnitude - position.z)/
-                                   (2f*Mathf.Tan(Mathf.Deg2Rad*Camera.fieldOfView/2f));
+            var positionOffset = (shipBounds.size.magnitude - position.z)/
+                                 (2f*Mathf.Tan(Mathf.Deg2Rad*Camera.fieldOfView/2f));
             // float positionOffset = (height - this.position.z) / (2f * Mathf.Tan(Mathf.Deg2Rad * this.Camera.fieldOfView / 2f)) - depth * 0.5f; // original 
             // Use magnitude of bounds instead of height and remove vehicle bounds depth for uniform distance from vehicle. Height and depth of vehicle change in relation to the camera as we move around the vehicle.
 
@@ -336,7 +305,7 @@ namespace VesselViewer
             Camera.transform.Translate(new Vector3(position.x, position.y, -positionOffset));
 
             // Get distance from camera to ship. Apply to farClipPlane
-            float distanceToShip = Vector3.Distance(Camera.transform.position, shipBounds.center);
+            var distanceToShip = Vector3.Distance(Camera.transform.position, shipBounds.center);
 
             // Set far clip plane to just past size of vehicle.
             Camera.farClipPlane = distanceToShip + Camera.nearClipPlane + depth*2 + 1;
@@ -344,14 +313,10 @@ namespace VesselViewer
             // this.Camera.farClipPlane = Camera.nearClipPlane + positionOffset + this.position.magnitude + depth; // original
 
             if (Orthographic)
-            {
                 Camera.orthographicSize = (Math.Max(height, width) - position.z)/2f;
-                // Use larger of ship height or width.
-                // this.Camera.orthographicSize = (height - this.position.z) / 2f; // original
-            }
 
-            bool isSaving = false;
-            float tmpAspect = width/height;
+            var isSaving = false;
+            var tmpAspect = width/height;
             if (height >= width)
             {
                 calculatedHeight = maxHeight;
@@ -364,7 +329,7 @@ namespace VesselViewer
             }
 
             // If we're saving, use full resolution.
-            if (imageWidth <= 0 || imageHeight <= 0)
+            if ((imageWidth <= 0) || (imageHeight <= 0))
             {
                 // Constrain image to max size with respect to aspect
                 isSaving = true;
@@ -380,8 +345,8 @@ namespace VesselViewer
             rt = RenderTexture.GetTemporary(imageWidth, imageHeight, 24, RenderTextureFormat.ARGB32,
                 RenderTextureReadWrite.sRGB);
 
-            int fileWidth = imageWidth;
-            int fileHeight = imageHeight;
+            var fileWidth = imageWidth;
+            var fileHeight = imageHeight;
             if (isSaving)
             {
                 fileWidth =
@@ -401,24 +366,14 @@ namespace VesselViewer
                 //Graphics.Blit(this.rt, this.rt, MaterialColorAdjust.Material);
                 //Graphics.Blit(this.rt, this.rt, MaterialEdgeDetect.Material);
                 foreach (var fx in Effects)
-                {
                     if (fx.Value.Enabled)
-                    {
                         Graphics.Blit(rt, rt, fx.Value.Material);
-                    }
-                }
             }
             if (uiBoolVals["canPreview"] || uiBoolVals["saveTextureEvent"])
-            {
-                foreach (Part p in EditorLogic.fetch.ship)
-                {
+                foreach (var p in EditorLogic.fetch.ship)
                     RestorePartShaders(p);
-                }
-            }
             if (uiBoolVals["saveTextureEvent"])
-            {
                 Resources.UnloadUnusedAssets(); //fix memory leak?
-            }
         }
 
         private void SaveTexture(string fileName)
@@ -448,8 +403,8 @@ namespace VesselViewer
                 filenamebase = ShipNameFileSafe + "_" + file_inc + ".png";
                 filename = Path.Combine(Directory.GetParent(KSPUtil.ApplicationRootPath).ToString(),
                     "Screenshots" + Path.DirectorySeparatorChar + filenamebase);
-            } while (System.IO.File.Exists(filename));
-            System.IO.File.WriteAllBytes(filename, bytes);
+            } while (File.Exists(filename));
+            File.WriteAllBytes(filename, bytes);
 
             Debug.Log(string.Format("KVV: Took screenshot to: {0}", filename));
             screenShot = null;
@@ -467,9 +422,7 @@ namespace VesselViewer
         {
             //if (!((EditorLogic.startPod) && (this.Ship != null)))
             if (!(EditorLogic.RootPart && (Ship != null)))
-            {
                 return;
-            }
 
             SaveTexture("front" + "_" + ShipName);
         }
@@ -477,10 +430,8 @@ namespace VesselViewer
         public void Explode()
         {
             //if (!EditorLogic.startPod || this.Ship == null)
-            if (!EditorLogic.RootPart || Ship == null)
-            {
+            if (!EditorLogic.RootPart || (Ship == null))
                 return;
-            }
             Config.Execute(Ship);
             UpdateShipBounds();
         }
@@ -488,10 +439,8 @@ namespace VesselViewer
         public void Update(int width = -1, int height = -1)
         {
             //if (!EditorLogic.startPod || this.Ship == null)
-            if (!EditorLogic.RootPart || Ship == null)
-            {
+            if (!EditorLogic.RootPart || (Ship == null))
                 return;
-            }
 
             //var dir = EditorLogic.startPod.transform.TransformDirection(this.direction);
             var dir = EditorLogic.RootPart.transform.TransformDirection(direction);
@@ -507,9 +456,7 @@ namespace VesselViewer
         internal Texture Texture()
         {
             if (!(EditorLogic.RootPart && (Ship != null)))
-            {
                 return null;
-            }
             return rt;
         }
     }

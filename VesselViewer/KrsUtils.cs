@@ -13,9 +13,7 @@ namespace VesselViewer
             var t = Type.GetType(qualifiedTypeName);
 
             if (t != null)
-            {
                 return t;
-            }
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
                 t = asm.GetType(qualifiedTypeName);
@@ -28,16 +26,14 @@ namespace VesselViewer
         public static string GetResourceString(string name)
         {
             if (File.Exists<KrsUtils>(name))
-            {
                 return File.ReadAllText<KrsUtils>(name);
-            }
             //return Properties.Resources.ResourceManager.GetString(name);
             return string.Empty;
         }
 
         public static Vector3 ProjectVectorToPlane(Vector3 v, Vector3 planeNormal)
         {
-            return v - Vector3.Dot(v, planeNormal) * planeNormal;
+            return v - Vector3.Dot(v, planeNormal)*planeNormal;
         }
 
         public static Vector3 VectorSwap(Vector3 v)
@@ -53,7 +49,7 @@ namespace VesselViewer
 
         public static float Wrap(float value, float min, float max)
         {
-            return (((value - min) % (max - min)) + (max - min)) % (max - min) + min;
+            return ((value - min)%(max - min) + (max - min))%(max - min) + min;
         }
 
         /*

@@ -6,34 +6,17 @@ using UnityEngine;
 
 namespace VesselViewer
 {
-    class VesselViewConfig
+    internal class VesselViewConfig
     {
-        private Dictionary<Transform, Vector3> positions;
-        private Dictionary<Renderer, bool> visibility;
-        private Dictionary<Part, bool> freezed;
-        public Dictionary<Part, bool> procFairings;
-        public float procFairingOffset;
-        private IShipconstruct ship;
-        public List<VesselElementViewOptions> Config { get; private set; }
+        private readonly Dictionary<Part, bool> freezed;
+        public List<string> installedMods = new List<string>();
         public Action onApply;
         public Action onRevert;
-        public List<String> installedMods = new List<String>();
-
-        public void buildModList()
-        {
-            //https://github.com/Xaiier/Kreeper/blob/master/Kreeper/Kreeper.cs#L92-L94 <- Thanks Xaiier!
-            foreach (AssemblyLoader.LoadedAssembly a in AssemblyLoader.loadedAssemblies)
-            {
-                string name = a.name;
-//UnityEngine.Debug.Log(string.Format("KVV: name: {0}", name));//future debubging
-                installedMods.Add(name);
-            }
-        }
-
-        public bool hasMod(string modIdent)
-        {
-            return installedMods.Contains(modIdent);
-        }
+        private readonly Dictionary<Transform, Vector3> positions;
+        public float procFairingOffset;
+        public Dictionary<Part, bool> procFairings;
+        private IShipconstruct ship;
+        private readonly Dictionary<Renderer, bool> visibility;
 
         //constructor
         public VesselViewConfig()
@@ -78,7 +61,6 @@ namespace VesselViewer
                 }
             };
             if (hasMod("KAS"))
-            {
                 Config.Add(new VesselElementViewOptions("KAS Connector Ports", CanApplyIfModule("KASModulePort"))
                 {
                     Options =
@@ -86,9 +68,7 @@ namespace VesselViewer
                         new VesselElementViewOption("Offset", true, true, KASConnectorPortExplode, true, 1f)
                     }
                 });
-            }
             if (hasMod("ProceduralFairings"))
-            {
                 Config.Add(new VesselElementViewOptions("Procedural Fairings", CanApplyIfModule("ProceduralFairingSide"))
                 {
                     Options =
@@ -98,7 +78,6 @@ namespace VesselViewer
                         new VesselElementViewOption("Hide front half", true, false, ProcFairingHide, false)
                     }
                 });
-            }
 
             Config.Add(new VesselElementViewOptions("Struts", CanApplyIfType("StrutConnector"))
             {
@@ -116,6 +95,24 @@ namespace VesselViewer
             });
         }
 
+        public List<VesselElementViewOptions> Config { get; }
+
+        public void buildModList()
+        {
+            //https://github.com/Xaiier/Kreeper/blob/master/Kreeper/Kreeper.cs#L92-L94 <- Thanks Xaiier!
+            foreach (var a in AssemblyLoader.loadedAssemblies)
+            {
+                var name = a.name;
+//UnityEngine.Debug.Log(string.Format("KVV: name: {0}", name));//future debubging
+                installedMods.Add(name);
+            }
+        }
+
+        public bool hasMod(string modIdent)
+        {
+            return installedMods.Contains(modIdent);
+        }
+
         private void StateToggle(bool toggleOn)
         {
             var p = EditorLogic.RootPart;
@@ -127,47 +124,27 @@ namespace VesselViewer
                 procFairings.Clear();
             }
             foreach (var t in p.GetComponentsInChildren<Transform>())
-            {
                 if (toggleOn)
-                {
                     positions[t] = t.localPosition;
-                }
-                else if ((!toggleOn) && positions.ContainsKey(t))
-                {
+                else if (!toggleOn && positions.ContainsKey(t))
                     t.localPosition = positions[t];
-                }
-            }
             foreach (var r in p.GetComponentsInChildren<Renderer>())
-            {
                 if (toggleOn)
-                {
                     visibility[r] = r.enabled;
-                }
-                else if ((!toggleOn) && visibility.ContainsKey(r))
-                {
+                else if (!toggleOn && visibility.ContainsKey(r))
                     r.enabled = visibility[r];
-                }
-            }
             foreach (var part in ship.Parts)
             {
                 if (toggleOn)
-                {
                     freezed[part] = part.frozen;
-                }
-                else if ((!toggleOn) && freezed.ContainsKey(part))
-                {
+                else if (!toggleOn && freezed.ContainsKey(part))
                     part.frozen = freezed[part];
-                }
 
                 if (hasMod("ProceduralFairings"))
-                {
-                    this.proceduralFairingToggleState(toggleOn, part);
-                }
+                    proceduralFairingToggleState(toggleOn, part);
             }
             if (!toggleOn)
-            {
                 onRevert();
-            }
             //else { this.onSaveState(); }
         }
 
@@ -189,9 +166,7 @@ namespace VesselViewer
             foreach (var part in ship.Parts)
             {
                 foreach (var c in Config)
-                {
                     c.Apply(part);
-                }
                 part.frozen = true;
             }
 
@@ -199,7 +174,7 @@ namespace VesselViewer
         }
 
 
-        private void proceduralFairingToggleState(Boolean toggleOn, Part part)
+        private void proceduralFairingToggleState(bool toggleOn, Part part)
         {
             if (part.Modules.Contains("ProceduralFairingSide") && hasMod("ProceduralFairings"))
             {
@@ -232,17 +207,13 @@ namespace VesselViewer
         private void PartHide(VesselElementViewOptions ol, VesselElementViewOption o, Part part)
         {
             foreach (var r in part.GetComponents<Renderer>())
-            {
                 r.enabled = false;
-            }
         }
 
         private void PartHideRecursive(VesselElementViewOptions ol, VesselElementViewOption o, Part part)
         {
             foreach (var r in part.GetComponentsInChildren<Renderer>())
-            {
                 r.enabled = false;
-            }
         }
 
         private void StackDecouplerExplode(VesselElementViewOptions ol, VesselElementViewOption o, Part part)
@@ -253,13 +224,11 @@ namespace VesselViewer
             if (!part.parent) return;
             Vector3 dir;
             if (module.isOmniDecoupler)
-            {
                 foreach (var c in part.children)
                 {
                     dir = Vector3.Normalize(c.transform.position - part.transform.position);
                     c.transform.Translate(dir*o.valueParam, Space.World);
                 }
-            }
             dir = Vector3.Normalize(part.transform.position - part.parent.transform.position);
             part.transform.Translate(dir*o.valueParam, Space.World);
         }
@@ -272,12 +241,10 @@ namespace VesselViewer
             if (!module.staged) return;
             if (string.IsNullOrEmpty(module.explosiveNodeID)) return;
             var an = module.explosiveNodeID == "srf" ? part.srfAttachNode : part.FindAttachNode(module.explosiveNodeID);
-            if (an == null || an.attachedPart == null) return;
+            if ((an == null) || (an.attachedPart == null)) return;
             var distance = o.valueParam;
             if (part.name.Contains("FairingCone"))
-            {
                 distance *= -1;
-            }
             Part partToBeMoved;
             if (an.attachedPart == part.parent)
             {
@@ -315,24 +282,16 @@ namespace VesselViewer
         {
             var module = part.Module<ModuleJettison>();
             if (!module.isJettisoned)
-            {
                 if (!module.isFairing)
-                {
                     module.jettisonTransform.Translate(module.jettisonDirection*o.valueParam);
-                }
-            }
         }
 
         private void EngineFairingHide(VesselElementViewOptions ol, VesselElementViewOption o, Part part)
         {
             var module = part.Module<ModuleJettison>();
             if (module.jettisonTransform)
-            {
                 foreach (var r in module.jettisonTransform.gameObject.GetComponentsInChildren<Renderer>())
-                {
                     r.enabled = false;
-                }
-            }
         }
 
         private void KASConnectorPortExplode(VesselElementViewOptions ol, VesselElementViewOption o, Part part)
@@ -365,7 +324,7 @@ namespace VesselViewer
                 var nct = part.FindModelTransform("nose_collider");
                 if (!nct) return;
                 procFairingOffset = o.valueParam;
-                Vector3 extents = new Vector3(o.valueParam, o.valueParam, o.valueParam);
+                var extents = new Vector3(o.valueParam, o.valueParam, o.valueParam);
                 part.transform.Translate(Vector3.Scale(nct.right, extents), Space.World);
             }
         }
@@ -379,7 +338,7 @@ namespace VesselViewer
                 var forward = EditorLogic.RootPart.transform.forward;
                 var right = EditorLogic.RootPart.transform.right;
 
-                if (Vector3.Dot(nct.right, -(forward).normalized) > 0f)
+                if (Vector3.Dot(nct.right, -forward.normalized) > 0f)
                 {
                     var renderer = part.GetComponentInChildren<Renderer>();
                     if (renderer) renderer.enabled = false;

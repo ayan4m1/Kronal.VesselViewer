@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using KSPAssets.Loaders;
 
 namespace VesselViewer
 {
@@ -13,7 +12,7 @@ namespace VesselViewer
         {
             if (!mat)
             {
-                mat = new Material(KrsUtils.Index.getShaderById("KVV/Lines/Colored Blended"));
+                mat = new Material(KrsUtils.Index.GetShaderById("KVV/Lines/Colored Blended"));
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 mat.shader.hideFlags = HideFlags.HideAndDontSave;
             }
@@ -22,10 +21,10 @@ namespace VesselViewer
         private void Awake()
         {
             CreateLineMaterial();
-            evo = (EditorVesselOverlays)FindObjectOfType(typeof(EditorVesselOverlays));
+            evo = (EditorVesselOverlays) FindObjectOfType(typeof(EditorVesselOverlays));
 
 #if DEBUG
-            Debug.Log(string.Format("KVV: KVrEditorAxis Awake"));
+            Debug.Log("KVV: KVrEditorAxis Awake");
 #endif
         }
 
@@ -41,40 +40,48 @@ namespace VesselViewer
             int dirAxis;
             dirAxis = -Math.Sign(Vector3.Dot(cameraArg.transform.forward, t.forward));
 
-            GL.Color(Color.yellow * new Color(1f, 1f, 1f, Mathf.Lerp(1f, 0f, (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.forward)) - 0.707f) * 5f)));
-            GL.Vertex(t.position - t.forward * 10f);
-            GL.Vertex(t.position + t.forward * 10f);
-            dirInterval = (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.right)) < 0.7071 ? t.right : t.up) * 0.5f;
+            GL.Color(Color.yellow*
+                     new Color(1f, 1f, 1f,
+                         Mathf.Lerp(1f, 0f, (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.forward)) - 0.707f)*5f)));
+            GL.Vertex(t.position - t.forward*10f);
+            GL.Vertex(t.position + t.forward*10f);
+            dirInterval = (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.right)) < 0.7071 ? t.right : t.up)*0.5f;
             for (var i = 0; i < 10; ++i)
             {
-                GL.Vertex(t.position - t.forward * i - dirInterval);
-                GL.Vertex(t.position - t.forward * i + dirInterval);
-                GL.Vertex(t.position + t.forward * i - dirInterval);
-                GL.Vertex(t.position + t.forward * i + dirInterval);
+                GL.Vertex(t.position - t.forward*i - dirInterval);
+                GL.Vertex(t.position - t.forward*i + dirInterval);
+                GL.Vertex(t.position + t.forward*i - dirInterval);
+                GL.Vertex(t.position + t.forward*i + dirInterval);
             }
 
-            GL.Color(Color.yellow * new Color(1f, 1f, 1f, Mathf.Lerp(1f, 0f, (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.right)) - 0.707f) * 5f)));
-            GL.Vertex(t.position - t.right * 10f);
-            GL.Vertex(t.position + t.right * 10f);
-            dirInterval = (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.forward)) < 0.7071 ? t.forward : t.up) * 0.5f;
+            GL.Color(Color.yellow*
+                     new Color(1f, 1f, 1f,
+                         Mathf.Lerp(1f, 0f, (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.right)) - 0.707f)*5f)));
+            GL.Vertex(t.position - t.right*10f);
+            GL.Vertex(t.position + t.right*10f);
+            dirInterval = (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.forward)) < 0.7071 ? t.forward : t.up)*
+                          0.5f;
             for (var i = 0; i < 10; ++i)
             {
-                GL.Vertex(t.position - t.right * i - dirInterval);
-                GL.Vertex(t.position - t.right * i + dirInterval);
-                GL.Vertex(t.position + t.right * i - dirInterval);
-                GL.Vertex(t.position + t.right * i + dirInterval);
+                GL.Vertex(t.position - t.right*i - dirInterval);
+                GL.Vertex(t.position - t.right*i + dirInterval);
+                GL.Vertex(t.position + t.right*i - dirInterval);
+                GL.Vertex(t.position + t.right*i + dirInterval);
             }
 
-            GL.Color(Color.yellow * new Color(1f, 1f, 1f, Mathf.Lerp(1f, 0f, (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.up)) - 0.707f) * 5f)));
-            GL.Vertex(t.position - t.up * 10f);
-            GL.Vertex(t.position + t.up * 10f);
-            dirInterval = (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.forward)) < 0.7071 ? t.forward : t.right) * 0.5f;
+            GL.Color(Color.yellow*
+                     new Color(1f, 1f, 1f,
+                         Mathf.Lerp(1f, 0f, (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.up)) - 0.707f)*5f)));
+            GL.Vertex(t.position - t.up*10f);
+            GL.Vertex(t.position + t.up*10f);
+            dirInterval = (Math.Abs(Vector3.Dot(cameraArg.transform.forward, t.forward)) < 0.7071 ? t.forward : t.right)*
+                          0.5f;
             for (var i = 0; i < 10; ++i)
             {
-                GL.Vertex(t.position - t.up * i - dirInterval);
-                GL.Vertex(t.position - t.up * i + dirInterval);
-                GL.Vertex(t.position + t.up * i - dirInterval);
-                GL.Vertex(t.position + t.up * i + dirInterval);
+                GL.Vertex(t.position - t.up*i - dirInterval);
+                GL.Vertex(t.position - t.up*i + dirInterval);
+                GL.Vertex(t.position + t.up*i - dirInterval);
+                GL.Vertex(t.position + t.up*i + dirInterval);
             }
             GL.End();
             GL.PopMatrix();

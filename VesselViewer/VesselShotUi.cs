@@ -6,25 +6,25 @@ using UnityEngine;
 namespace VesselViewer
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    class VesselShotUi : MonoBehaviour
+    internal class VesselShotUi : MonoBehaviour
     {
-        private VesselShot control = new VesselShot();
-        bool mySoftLock; //not to be confused with EditorLogic.softLock
-        private string inputLockIdent = "KVV-EditorLock";
-        private Rect windowSize;
-        private Vector2 windowScrollPos;
-        private int tabCurrent; //almost obsolete
+        private EditorAxis axis;
+        private readonly VesselShot control = new VesselShot();
+        private GUIStyle guiStyleButtonAlert;
+        private readonly string inputLockIdent = "KVV-EditorLock";
+        private ApplicationLauncherButton KVVButton;
+        private bool mySoftLock; //not to be confused with EditorLogic.softLock
+        private Rect orthoViewRect;
         private int shaderTabCurrent;
         private string[] shaderTabsNames;
-        private Rect orthoViewRect;
-        private GUIStyle guiStyleButtonAlert;
-        private ApplicationLauncherButton KVVButton;
+        private int tabCurrent; //almost obsolete
         private bool visible;
-        private EditorAxis axis;
+        private Vector2 windowScrollPos;
+        private Rect windowSize;
 
         private bool IsOnEditor()
         {
-            return (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedSceneIsEditor);
+            return (HighLogic.LoadedScene == GameScenes.EDITOR) || HighLogic.LoadedSceneIsEditor;
         }
 
         public void Awake()
@@ -42,9 +42,7 @@ namespace VesselViewer
         private void Start()
         {
             if (KVVButton == null)
-            {
                 OnGUIAppLauncherReady();
-            }
         }
 
         private void ConfigApplied()
@@ -86,36 +84,36 @@ namespace VesselViewer
 
         public void Update()
         {
-            if (tabCurrent == 0 && (orthoViewRect.width*orthoViewRect.height) > 1f)
-            {
+            if ((tabCurrent == 0) && (orthoViewRect.width*orthoViewRect.height > 1f))
                 control.Update((int) orthoViewRect.width*2, (int) orthoViewRect.height*2);
-            }
         }
 
-        bool isMouseOver() //https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
+        private bool isMouseOver() //https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
         {
-            Vector2 position = new Vector2(Input.mousePosition.x,
+            var position = new Vector2(Input.mousePosition.x,
                 Screen.height - Input.mousePosition.y);
             return windowSize.Contains(position);
         }
+
         /* Whenever we mouseover our window, we need to lock the editor so we don't pick up
          * parts while dragging the window around */
-        void setEditorLock()//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs#L296
+
+        private void setEditorLock() //https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs#L296
         {
             if (visible)
             {
-                bool mouseOver = isMouseOver();
+                var mouseOver = isMouseOver();
                 if (mouseOver && !mySoftLock)
                 {
                     mySoftLock = true;
-                    ControlTypes controlTypes = ControlTypes.CAMERACONTROLS
-                                                | ControlTypes.EDITOR_ICON_HOVER
-                                                | ControlTypes.EDITOR_ICON_PICK
-                                                | ControlTypes.EDITOR_PAD_PICK_PLACE
-                                                | ControlTypes.EDITOR_PAD_PICK_COPY
-                                                | ControlTypes.EDITOR_EDIT_STAGES
-                                                | ControlTypes.EDITOR_GIZMO_TOOLS
-                                                | ControlTypes.EDITOR_ROOT_REFLOW;
+                    var controlTypes = ControlTypes.CAMERACONTROLS
+                                       | ControlTypes.EDITOR_ICON_HOVER
+                                       | ControlTypes.EDITOR_ICON_PICK
+                                       | ControlTypes.EDITOR_PAD_PICK_PLACE
+                                       | ControlTypes.EDITOR_PAD_PICK_COPY
+                                       | ControlTypes.EDITOR_EDIT_STAGES
+                                       | ControlTypes.EDITOR_GIZMO_TOOLS
+                                       | ControlTypes.EDITOR_ROOT_REFLOW;
 
                     InputLockManager.SetControlLock(controlTypes, inputLockIdent);
                 }
@@ -134,24 +132,22 @@ namespace VesselViewer
 
         public void OnGUI()
         {
-            switch (HighLogic.LoadedScene) {//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
+            switch (HighLogic.LoadedScene)
+            {
+//https://github.com/m4v/RCSBuildAid/blob/master/Plugin/GUI/MainWindow.cs
                 case GameScenes.EDITOR:
-                //case GameScenes.SPH:
+                    //case GameScenes.SPH:
                     break;
                 default:
                     /* don't show window during scene changes */
                     return;
             }
             if (visible)
-            {
                 windowSize = GUILayout.Window(GetInstanceID(), windowSize, GUIWindow, "Kronal Vessel Viewer",
                     HighLogic.Skin.window);
-            }
 
             if (Event.current.type == EventType.Repaint)
-            {
                 setEditorLock();
-            }
         }
 
         private void GUIWindow(int id)
@@ -180,14 +176,10 @@ namespace VesselViewer
             }
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Offset View"))
-            {
                 control.Explode();
-            }
 
             if (GUILayout.Button("Revert"))
-            {
                 control.Config.Revert();
-            }
 
             if (GUILayout.Button("Screenshot"))
             {
@@ -201,25 +193,15 @@ namespace VesselViewer
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
             if (GUILayout.RepeatButton("ᴖ", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.direction = Quaternion.AngleAxis(-0.4f, control.Camera.transform.right)*control.direction;
-            }
             if (GUILayout.RepeatButton("ϲ", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.RotateShip(-1f);
-            }
             if (GUILayout.RepeatButton("▲", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.position.y -= 0.1f;
-            }
             if (GUILayout.RepeatButton("ᴐ", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.RotateShip(1f);
-            }
             if (GUILayout.RepeatButton("+", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.position.z += 0.1f;
-            }
             if (GUILayout.Button("RESET", guiStyleButtonAlert, GUILayout.Width(34), GUILayout.Height(34)))
             {
                 control.direction = Vector3.forward;
@@ -228,25 +210,15 @@ namespace VesselViewer
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             if (GUILayout.RepeatButton("ᴗ", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.direction = Quaternion.AngleAxis(0.4f, control.Camera.transform.right)*control.direction;
-            }
             if (GUILayout.RepeatButton("◄", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.position.x += 0.1f;
-            }
             if (GUILayout.RepeatButton("▼", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.position.y += 0.1f;
-            }
             if (GUILayout.RepeatButton("►", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.position.x -= 0.1f;
-            }
             if (GUILayout.RepeatButton("-", GUILayout.Width(34), GUILayout.Height(34)))
-            {
                 control.position.z -= 0.1f;
-            }
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
 
@@ -259,8 +231,10 @@ namespace VesselViewer
             control.uiFloatVals["shadowValPercent"] = GUILayout.HorizontalSlider(
                 control.uiFloatVals["shadowValPercent"], 0f, 300f, GUILayout.Width(153f));
             GUILayout.Space(1f);
-            GUILayout.Label(control.uiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));//GUILayout.Width(50f),
-            control.uiFloatVals["shadowVal"] = control.uiFloatVals["shadowValPercent"] * 1000f;//1000 is the max shadow val.  Looks like it takes a float so thats the max? 
+            GUILayout.Label(control.uiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));
+                //GUILayout.Width(50f),
+            control.uiFloatVals["shadowVal"] = control.uiFloatVals["shadowValPercent"]*1000f;
+                //1000 is the max shadow val.  Looks like it takes a float so thats the max? 
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("File Quality", GUILayout.Width(68f));
@@ -268,9 +242,11 @@ namespace VesselViewer
             control.uiFloatVals["imgPercent"] = GUILayout.HorizontalSlider(control.uiFloatVals["imgPercent"] - 1, 0f, 8f,
                 GUILayout.Width(140f));
             GUILayout.Space(1f);
-            String disW = Math.Floor((control.uiFloatVals["imgPercent"] +1) * control.calculatedWidth).ToString();
-            String disH = Math.Floor((control.uiFloatVals["imgPercent"] + 1) * control.calculatedHeight).ToString();
-            GUILayout.Label(String.Format("{0:0.#}", control.uiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH, GUILayout.Width(110f));//GUILayout.Width(50f),
+            var disW = Math.Floor((control.uiFloatVals["imgPercent"] + 1)*control.calculatedWidth).ToString();
+            var disH = Math.Floor((control.uiFloatVals["imgPercent"] + 1)*control.calculatedHeight).ToString();
+            GUILayout.Label(
+                string.Format("{0:0.#}", control.uiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH,
+                GUILayout.Width(110f)); //GUILayout.Width(50f),
             control.uiFloatVals["imgPercent"] = control.uiFloatVals["imgPercent"] + 1;
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
@@ -280,7 +256,7 @@ namespace VesselViewer
             shaderTabCurrent = GUILayout.Toolbar(shaderTabCurrent, shaderTabsNames);
             GUILayout.EndHorizontal();
 
-            tabCurrent = 0;//used only in Update() be 0.  This will be removed later
+            tabCurrent = 0; //used only in Update() be 0.  This will be removed later
         }
 
         private void GUITabShader(string name)
@@ -297,10 +273,9 @@ namespace VesselViewer
             GUILayout.EndHorizontal();
             for (var i = 0; i < control.Effects[name].PropertyCount; ++i)
             {
-
                 var prop = control.Effects[name][i];
                 prop.Match(
-                    IfFloat: p =>
+                    p =>
                     {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(p.DisplayName, GUILayout.Width(60f));
@@ -364,14 +339,10 @@ namespace VesselViewer
             GUILayout.EndHorizontal();
             var r = GUILayoutUtility.GetRect(0, windowSize.width, 0, windowSize.height);
             if (Event.current.type == EventType.Repaint)
-            {
                 orthoViewRect = r;
-            }
             var texture = control.Texture();
             if (texture)
-            {
                 GUI.DrawTexture(orthoViewRect, texture, ScaleMode.ScaleToFit, false); // ALPHA BLENDING?! HEY HEY
-            }
         }
 
         private void GUITabConfig()
@@ -385,22 +356,16 @@ namespace VesselViewer
                 {
                     GUILayout.BeginHorizontal();
                     if (o.IsToggle)
-                    {
                         o.valueActive = GUILayout.Toggle(o.valueActive, o.Name);
-                    }
                     else
-                    {
                         GUILayout.Label(o.Name);
-                    }
                     if (o.HasParam)
                     {
                         var displayText = o.valueParam.ToString(o.valueFormat);
                         displayText = GUILayout.TextField(displayText);
                         float value;
                         if (float.TryParse(displayText, out value))
-                        {
                             o.valueParam = value;
-                        }
                     }
                     GUILayout.EndHorizontal();
                 }
@@ -410,13 +375,12 @@ namespace VesselViewer
             GUILayout.EndScrollView();
         }
 
-        void OnGUIAppLauncherReady()
+        private void OnGUIAppLauncherReady()
         {
 #if DEBUG
-            Debug.Log(string.Format("KVV: OnGUIAppLauncherReady {0}", KSP.UI.Screens.ApplicationLauncher.Ready.ToString()));
+            Debug.Log(string.Format("KVV: OnGUIAppLauncherReady {0}", ApplicationLauncher.Ready));
 #endif
             if (ApplicationLauncher.Ready)
-            {
                 KVVButton = ApplicationLauncher.Instance.AddModApplication(
                     onAppLaunchToggleOn,
                     onAppLaunchToggleOff,
@@ -426,30 +390,29 @@ namespace VesselViewer
                     DummyVoid,
                     ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
                     GameDatabase.Instance.GetTexture("VesselViewer/Textures/icon_button", false));
-            }
         }
 
-        void onAppLaunchToggleOn()
+        private void onAppLaunchToggleOn()
         {
             axis = EditorLogic.fetch.editorCamera.gameObject.AddComponent<EditorAxis>();
             control.UpdateShipBounds();
             visible = true;
         }
 
-        void onAppLaunchToggleOff()
+        private void onAppLaunchToggleOff()
         {
             DestroyObject(axis);
             visible = false;
         }
 
-        void DummyVoid()
+        private void DummyVoid()
         {
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
 #if DEBUG
-            Debug.Log(string.Format("KVV: OnDestroy"));
+            Debug.Log("KVV: OnDestroy");
 #endif
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
             if (axis != null)
@@ -458,7 +421,7 @@ namespace VesselViewer
             if (KVVButton != null)
                 ApplicationLauncher.Instance.RemoveModApplication(KVVButton);
 
-            Resources.UnloadUnusedAssets();//fix memory leak?
+            Resources.UnloadUnusedAssets(); //fix memory leak?
         }
     }
 }

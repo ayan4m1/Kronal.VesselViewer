@@ -5,6 +5,8 @@ namespace VesselViewer
 {
     internal abstract class ShaderMaterialProperty
     {
+        public readonly Material Material;
+
         private ShaderMaterialProperty(Material material, string name, string displayName)
         {
             Material = material;
@@ -12,9 +14,9 @@ namespace VesselViewer
             DisplayName = displayName;
         }
 
-        public readonly Material Material;
-        public string Name { get; private set; }
-        public string DisplayName { get; private set; }
+        public string Name { get; }
+        public string DisplayName { get; }
+
         public abstract void Match(
             Action<FloatProperty> IfFloat = null,
             Action<VectorProperty> IfVector = null,
@@ -25,14 +27,9 @@ namespace VesselViewer
 
         public sealed class FloatProperty : ShaderMaterialProperty
         {
-            public float Value
-            {
-                get { return Material.GetFloat(Name); }
-                set { Material.SetFloat(Name, value); }
-            }
-            public readonly float RangeMin;
-            public readonly float RangeMax;
             public readonly float DefaultValue;
+            public readonly float RangeMax;
+            public readonly float RangeMin;
 
             internal FloatProperty(Material material, string name, string displayName, float min, float max)
                 : base(material, name, displayName)
@@ -40,6 +37,12 @@ namespace VesselViewer
                 RangeMin = min;
                 RangeMax = max;
                 DefaultValue = Value;
+            }
+
+            public float Value
+            {
+                get { return Material.GetFloat(Name); }
+                set { Material.SetFloat(Name, value); }
             }
 
             public override void Match(
@@ -59,17 +62,18 @@ namespace VesselViewer
 
         public sealed class VectorProperty : ShaderMaterialProperty
         {
-            public Vector4 Value
-            {
-                get { return Material.GetVector(Name); }
-                set { Material.SetVector(Name, value); }
-            }
             public readonly Vector4 DefaultValue;
 
             internal VectorProperty(Material material, string name, string displayName)
                 : base(material, name, displayName)
             {
                 DefaultValue = Value;
+            }
+
+            public Vector4 Value
+            {
+                get { return Material.GetVector(Name); }
+                set { Material.SetVector(Name, value); }
             }
 
             public override void Match(
@@ -89,17 +93,18 @@ namespace VesselViewer
 
         public sealed class ColorProperty : ShaderMaterialProperty
         {
-            public Color Value
-            {
-                get { return Material.GetColor(Name); }
-                set { Material.SetColor(Name, value); }
-            }
             public readonly Color DefaultValue;
 
             internal ColorProperty(Material material, string name, string displayName)
                 : base(material, name, displayName)
             {
                 DefaultValue = Value;
+            }
+
+            public Color Value
+            {
+                get { return Material.GetColor(Name); }
+                set { Material.SetColor(Name, value); }
             }
 
             public override void Match(
@@ -119,14 +124,16 @@ namespace VesselViewer
 
         public sealed class TextureProperty : ShaderMaterialProperty
         {
+            internal TextureProperty(Material material, string name, string displayName)
+                : base(material, name, displayName)
+            {
+            }
+
             public Texture Value
             {
                 get { return Material.GetTexture(Name); }
                 set { Material.SetTexture(Name, value); }
             }
-
-            internal TextureProperty(Material material, string name, string displayName)
-                : base(material, name, displayName) { }
 
             public override void Match(
                 Action<FloatProperty> IfFloat = null,
