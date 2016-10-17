@@ -176,6 +176,7 @@ FakesAssemblies/
 *.DotSettings
 
 AssetBundles/
+/GameData/
 
 /[Ll]ibrary/
 /[Tt]emp/
