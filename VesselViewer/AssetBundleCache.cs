@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using KSPAssets.Loaders;
 using UnityEngine;
 
 namespace VesselViewer
@@ -25,5 +23,4 @@ namespace VesselViewer
             return Shaders.ContainsKey(id) ? Shaders[id] : null;
         }
     }
-
 }

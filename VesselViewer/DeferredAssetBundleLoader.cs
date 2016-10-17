@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using KSPAssets.Loaders;
 using UnityEngine;
 
@@ -51,7 +47,7 @@ namespace VesselViewer
         }
 
         public void Initialized(AssetLoader.Loader loader)
-        // thanks moarDV - https://github.com/Mihara/RasterPropMonitor/blob/5c9fa8b259dd391892fe121724519413ccbb6b59/RasterPropMonitor/Core/UtilityFunctions.cs
+            // thanks moarDV - https://github.com/Mihara/RasterPropMonitor/blob/5c9fa8b259dd391892fe121724519413ccbb6b59/RasterPropMonitor/Core/UtilityFunctions.cs
         {
             var cache = new AssetBundleCache();
             Debug.Log("KVV: Cache is being initialized");

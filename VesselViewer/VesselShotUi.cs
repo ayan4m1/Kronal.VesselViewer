@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using KSP.UI.Screens;
 using UnityEngine;
@@ -23,7 +21,7 @@ namespace VesselViewer
         private bool visible;
         private Vector2 windowScrollPos;
         private Rect windowSize;
-        
+
         private bool IsOnEditor()
         {
             return (HighLogic.LoadedScene == GameScenes.EDITOR) || HighLogic.LoadedSceneIsEditor;
@@ -43,8 +41,6 @@ namespace VesselViewer
 
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
         }
-
-        
 
         private void Start()
         {
@@ -239,9 +235,9 @@ namespace VesselViewer
                 control.UiFloatVals["shadowValPercent"], 0f, 300f, GUILayout.Width(153f));
             GUILayout.Space(1f);
             GUILayout.Label(control.UiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));
-                //GUILayout.Width(50f),
+            //GUILayout.Width(50f),
             control.UiFloatVals["shadowVal"] = control.UiFloatVals["shadowValPercent"]*1000f;
-                //1000 is the max shadow val.  Looks like it takes a float so thats the max? 
+            //1000 is the max shadow val.  Looks like it takes a float so thats the max? 
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("File Quality", GUILayout.Width(68f));
@@ -268,7 +264,7 @@ namespace VesselViewer
 
         private void GUITabShader(string name)
         {
-            if (Array.IndexOf(control.Effects.Keys.ToArray(), name) <= -1) //effect not found!
+            if (!control.Effects.ContainsKey(name)) // effect not found!
             {
                 GUILayout.BeginHorizontal();
                 GUITabConfig();

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading;
 using UnityEngine;
 
 namespace VesselViewer
@@ -34,6 +33,7 @@ namespace VesselViewer
         private Bounds _shipBounds;
         private Camera[] _cameras;
         private RenderTexture _texture;
+
         private readonly Dictionary<Part, Dictionary<MeshRenderer, Shader>> _partShaderLibrary =
             new Dictionary<Part, Dictionary<MeshRenderer, Shader>>();
 
@@ -165,7 +165,7 @@ namespace VesselViewer
                 rotateAxis = EditorLogic.RootPart.transform.up;
             }
 
-            Direction = Quaternion.AngleAxis(degrees, rotateAxis) * Direction;
+            Direction = Quaternion.AngleAxis(degrees, rotateAxis)*Direction;
         }
 
         private void ReplacePartShaders(Part part)
@@ -180,12 +180,16 @@ namespace VesselViewer
                 var material = mesh.material;
                 var shader = material.shader;
 
+                // store current for later restoration
+                if (!meshLibrary.ContainsKey(mesh))
+                {
+                    meshLibrary.Add(mesh, shader);
+                }
+
                 Material replacement;
-                materials.TryGetValue(shader.name, out replacement);
-                if (replacement != null)
+                if (materials.TryGetValue(shader.name, out replacement))
                 {
                     //Debug.Log("KVV: Looking for replacement for " + shader.name);
-                    meshLibrary.Add(mesh, shader);
                     mesh.material = replacement;
                 }
                 else
@@ -205,14 +209,14 @@ namespace VesselViewer
             var model = part.transform.Find("model");
             if (!model) return;
 
-            Dictionary<MeshRenderer, Shader> meshRendererLibrary;
-            if (!_partShaderLibrary.TryGetValue(part, out meshRendererLibrary)) return;
+            Dictionary<MeshRenderer, Shader> savedMats;
+            if (!_partShaderLibrary.TryGetValue(part, out savedMats)) return;
 
-            foreach (var mr in model.GetComponentsInChildren<MeshRenderer>())
+            foreach (var mesh in model.GetComponentsInChildren<MeshRenderer>())
             {
                 Shader oldShader;
-                if (meshRendererLibrary.TryGetValue(mr, out oldShader))
-                    mr.material.shader = oldShader;
+                if (savedMats.TryGetValue(mesh, out oldShader))
+                    mesh.material.shader = oldShader;
             }
         }
 
@@ -331,7 +335,12 @@ namespace VesselViewer
             {
                 Camera.aspect = imageWidth / (float)imageHeight;
             }
-            if (_texture) RenderTexture.ReleaseTemporary(_texture);
+
+            if (_texture)
+            {
+                RenderTexture.ReleaseTemporary(_texture);
+            }
+
             _texture = RenderTexture.GetTemporary(imageWidth, imageHeight, 24, RenderTextureFormat.ARGB32,
                 RenderTextureReadWrite.sRGB);
 
@@ -353,8 +362,10 @@ namespace VesselViewer
                 Camera.depthTextureMode = DepthTextureMode.DepthNormals;
                 Camera.Render();
                 Camera.targetTexture = null;
-                //Graphics.Blit(this._texture, this._texture, MaterialColorAdjust.Material);
-                //Graphics.Blit(this._texture, this._texture, MaterialEdgeDetect.Material);
+                var fxaaMateria = KrsUtils.AssetBundle.FindShader(Effects["FXAA"].Material.name);
+                Graphics.Blit(this._texture, this._texture, new Material(fxaaMateria));
+                var edgeMaterial = KrsUtils.AssetBundle.FindShader(Effects["Edge Detect"].Material.name);
+                Graphics.Blit(this._texture, this._texture, new Material(edgeMaterial));
                 foreach (var fx in Effects)
                     if (fx.Value.Enabled)
                         Graphics.Blit(_texture, _texture, fx.Value.Material);
