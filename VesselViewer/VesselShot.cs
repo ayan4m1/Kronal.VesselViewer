@@ -180,22 +180,25 @@ namespace VesselViewer
                 var material = mesh.material;
                 var shader = material.shader;
 
-                // store current for later restoration
-                if (!meshLibrary.ContainsKey(mesh))
-                {
-                    meshLibrary.Add(mesh, shader);
-                }
-
                 Material replacement;
                 if (materials.TryGetValue(shader.name, out replacement))
                 {
                     //Debug.Log("KVV: Looking for replacement for " + shader.name);
-                    mesh.material = replacement;
+                    mesh.material.shader = replacement.shader;
+
+                    // store current for later restoration
+                    if (!meshLibrary.ContainsKey(mesh))
+                    {
+                        meshLibrary.Add(mesh, shader);
+                    }
                 }
-                else
+
+#if DEBUG
+                if (replacement == null)
                 {
                     Debug.LogWarning("KVV: No replacement for " + shader.name);
                 }
+#endif
             }
 
             if (!_partShaderLibrary.ContainsKey(part))
@@ -248,20 +251,16 @@ namespace VesselViewer
             return CalcShipBounds().size;
         }
 
-        public void GenTexture(Vector3 direction, int imageWidth = -1, int imageHeight = -1)
+        public void UpdateCamera(Vector3 direction, int imageWidth, int imageHeight)
         {
-            if (UiBoolVals["canPreview"] || UiBoolVals["saveTextureEvent"])
-                foreach (var p in EditorLogic.fetch.ship)
-                    ReplacePartShaders(p);
-
             var minusDir = -direction;
             Camera.clearFlags = CameraClearFlags.SolidColor;
             // todo: blueprint shader missing
             /*if (Effects["Blueprint"].Enabled)
                 Camera.backgroundColor = new Color(1f, 1f, 1f, 0.0f);
             else*/
-                Camera.backgroundColor = new Color(UiFloatVals["bgR"], UiFloatVals["bgG"], UiFloatVals["bgB"],
-                    UiFloatVals["bgA"]);
+            Camera.backgroundColor = new Color(UiFloatVals["bgR"], UiFloatVals["bgG"], UiFloatVals["bgB"],
+                UiFloatVals["bgA"]);
 
             Camera.transform.position = _shipBounds.center;
 
@@ -273,7 +272,7 @@ namespace VesselViewer
             // this.Camera.transform.rotation = Quaternion.AngleAxis(0f, Vector3.up); // original 
 
             // Apply angle Vector to camera.
-            Camera.transform.Translate(minusDir * Camera.nearClipPlane);
+            Camera.transform.Translate(minusDir*Camera.nearClipPlane);
             // this.Camera.transform.Translate(Vector3.Scale(minusDir, this.shipBounds.extents) + minusDir * this.Camera.nearClipPlane); // original 
             // Deckblad: There was a lot of math here when all we needed to do is establish the rotation of the camera.
 
@@ -290,8 +289,8 @@ namespace VesselViewer
             depth += Config.procFairingOffset; // for the farClipPlane
 
             // Find distance from vehicle.
-            var positionOffset = (_shipBounds.size.magnitude - Position.z) /
-                                 (2f * Mathf.Tan(Mathf.Deg2Rad * Camera.fieldOfView / 2f));
+            var positionOffset = (_shipBounds.size.magnitude - Position.z)/
+                                 (2f*Mathf.Tan(Mathf.Deg2Rad*Camera.fieldOfView/2f));
             // float positionOffset = (height - this.position.z) / (2f * Mathf.Tan(Mathf.Deg2Rad * this.Camera.fieldOfView / 2f)) - depth * 0.5f; // original 
             // Use magnitude of bounds instead of height and remove vehicle bounds depth for uniform distance from vehicle. Height and depth of vehicle change in relation to the camera as we move around the vehicle.
 
@@ -302,81 +301,82 @@ namespace VesselViewer
             var distanceToShip = Vector3.Distance(Camera.transform.position, _shipBounds.center);
 
             // Set far clip plane to just past size of vehicle.
-            Camera.farClipPlane = distanceToShip + Camera.nearClipPlane + depth * 2 + 1;
+            Camera.farClipPlane = distanceToShip + Camera.nearClipPlane + depth*2 + 1;
             // 1 for the first rotation vector
             // this.Camera.farClipPlane = Camera.nearClipPlane + positionOffset + this.position.magnitude + depth; // original
 
             if (Orthographic)
-                Camera.orthographicSize = (Math.Max(height, width) - Position.z) / 2f;
+                Camera.orthographicSize = (Math.Max(height, width) - Position.z)/2f;
 
-            var isSaving = false;
-            var tmpAspect = width / height;
+            var tmpAspect = width/height;
             if (height >= width)
             {
                 CalculatedHeight = MaxHeight;
-                CalculatedWidth = (int)(CalculatedHeight * tmpAspect);
+                CalculatedWidth = (int) (CalculatedHeight*tmpAspect);
             }
             else
             {
                 CalculatedWidth = MaxWidth;
-                CalculatedHeight = (int)(CalculatedWidth / tmpAspect);
+                CalculatedHeight = (int) (CalculatedWidth/tmpAspect);
             }
 
             // If we're saving, use full resolution.
             if ((imageWidth <= 0) || (imageHeight <= 0))
             {
                 // Constrain image to max size with respect to aspect
-                isSaving = true;
                 Camera.aspect = tmpAspect;
-                imageWidth = CalculatedWidth;
-                imageHeight = CalculatedHeight;
             }
             else
             {
-                Camera.aspect = imageWidth / (float)imageHeight;
+                Camera.aspect = imageWidth/(float) imageHeight;
             }
+        }
 
-            if (_texture)
+        public void GenTexture(Vector3 direction, int imageWidth = -1, int imageHeight = -1)
+        {
+            var isDrawing = UiBoolVals["canPreview"] || UiBoolVals["saveTextureEvent"];
+            var isSaving = UiBoolVals["saveTextureEvent"];
+
+            UpdateCamera(direction, imageWidth, imageHeight);
+
+            if (_texture != null)
             {
                 RenderTexture.ReleaseTemporary(_texture);
+                _texture = null;
             }
-
-            _texture = RenderTexture.GetTemporary(imageWidth, imageHeight, 24, RenderTextureFormat.ARGB32,
-                RenderTextureReadWrite.sRGB);
 
             var fileWidth = imageWidth;
             var fileHeight = imageHeight;
             if (isSaving)
             {
                 fileWidth =
-                    (int)Math.Floor(imageWidth * (UiFloatVals["imgPercent"] >= 1 ? UiFloatVals["imgPercent"] : 1f));
+                    (int) Math.Floor(imageWidth*(UiFloatVals["imgPercent"] >= 1 ? UiFloatVals["imgPercent"] : 1f));
                 fileHeight =
-                    (int)Math.Floor(imageHeight * (UiFloatVals["imgPercent"] >= 1 ? UiFloatVals["imgPercent"] : 1f));
+                    (int) Math.Floor(imageHeight*(UiFloatVals["imgPercent"] >= 1 ? UiFloatVals["imgPercent"] : 1f));
             }
 
-            if (UiBoolVals["canPreview"] || UiBoolVals["saveTextureEvent"])
+            if (isDrawing)
             {
+                foreach (var p in EditorLogic.fetch.ship)
+                    ReplacePartShaders(p);
+
                 _texture = RenderTexture.GetTemporary(fileWidth, fileHeight, 24, RenderTextureFormat.ARGB32,
                     RenderTextureReadWrite.sRGB);
+
                 Camera.targetTexture = _texture;
                 Camera.depthTextureMode = DepthTextureMode.DepthNormals;
                 Camera.Render();
                 Camera.targetTexture = null;
-                var fxaaMateria = KrsUtils.AssetBundle.FindShader(Effects["FXAA"].Material.name);
-                Graphics.Blit(this._texture, this._texture, new Material(fxaaMateria));
-                var edgeMaterial = KrsUtils.AssetBundle.FindShader(Effects["Edge Detect"].Material.name);
-                Graphics.Blit(this._texture, this._texture, new Material(edgeMaterial));
-                foreach (var fx in Effects)
-                    if (fx.Value.Enabled)
-                        Graphics.Blit(_texture, _texture, fx.Value.Material);
-            }
 
-            if (UiBoolVals["canPreview"] || UiBoolVals["saveTextureEvent"])
+                /*foreach (var fx in Effects)
+                    if (fx.Value.Enabled)
+                        Graphics.Blit(_texture, _texture, fx.Value.Material);*/
+
                 foreach (var p in EditorLogic.fetch.ship)
                     RestorePartShaders(p);
+            }
 
-            if (UiBoolVals["saveTextureEvent"])
-                Resources.UnloadUnusedAssets(); //fix memory leak?
+            Resources.UnloadUnusedAssets();
         }
 
         private void SaveTexture(string fileName)
