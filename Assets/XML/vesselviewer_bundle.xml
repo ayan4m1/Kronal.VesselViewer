@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KSPBundleDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" UrlName="vesselviewer" Name="vesselviewer" CreatedTime="-8587251891733089633">
+  <Author />
+  <Info />
+  <Assets>
+    <Asset Name="KSP/Bumped" Path="Assets/VesselViewer/Shaders/bumped.shader" Type="Shader" Url="VesselViewer/Shaders/bumped" AutoLoad="false" />
+    <Asset Name="KSP/Bumped Specular" Path="Assets/VesselViewer/Shaders/bumpedspecular.shader" Type="Shader" Url="VesselViewer/Shaders/bumpedspecular" AutoLoad="false" />
+    <Asset Name="KSP/Alpha/Cutoff" Path="Assets/VesselViewer/Shaders/cutoff.shader" Type="Shader" Url="VesselViewer/Shaders/cutoff" AutoLoad="false" />
+    <Asset Name="KSP/Diffuse" Path="Assets/VesselViewer/Shaders/diffuse.shader" Type="Shader" Url="VesselViewer/Shaders/diffuse" AutoLoad="false" />
+    <Asset Name="Hidden/EdgeDetect" Path="Assets/VesselViewer/Shaders/edn.shader" Type="Shader" Url="VesselViewer/Shaders/edn" AutoLoad="false" />
+    <Asset Name="Hidden/EdgeDetect" Path="Assets/VesselViewer/Shaders/edn2.shader" Type="Shader" Url="VesselViewer/Shaders/edn2" AutoLoad="false" />
+    <Asset Name="KSP/Emissive/Bumped Specular" Path="Assets/VesselViewer/Shaders/emissivebumpedspecular.shader" Type="Shader" Url="VesselViewer/Shaders/emissivebumpedspecular" AutoLoad="false" />
+    <Asset Name="KSP/Emissive/Specular" Path="Assets/VesselViewer/Shaders/emissivespecular.shader" Type="Shader" Url="VesselViewer/Shaders/emissivespecular" AutoLoad="false" />
+    <Asset Name="KVV/fallback" Path="Assets/VesselViewer/Shaders/fallback.shader" Type="Shader" Url="VesselViewer/Shaders/fallback" AutoLoad="false" />
+    <Asset Name="Hidden/FXAA3" Path="Assets/VesselViewer/Shaders/fxaa3.shader" Type="Shader" Url="VesselViewer/Shaders/fxaa3" AutoLoad="false" />
+    <Asset Name="fxaa3_9" Path="Assets/VesselViewer/Shaders/fxaa3_9.cginc" Type="TextAsset" Url="VesselViewer/Shaders/fxaa3_9" AutoLoad="false" />
+    <Asset Name="Outlined Diffuse" Path="Assets/VesselViewer/Shaders/outline.shader" Type="Shader" Url="VesselViewer/Shaders/outline" AutoLoad="false" />
+    <Asset Name="KSP/Specular" Path="Assets/VesselViewer/Shaders/specular.shader" Type="Shader" Url="VesselViewer/Shaders/specular" AutoLoad="false" />
+    <Asset Name="KSP/Unlit" Path="Assets/VesselViewer/Shaders/unlit.shader" Type="Shader" Url="VesselViewer/Shaders/unlit" AutoLoad="false" />
+  </Assets>
+  <Dependencies />
+</KSPBundleDefinition>
