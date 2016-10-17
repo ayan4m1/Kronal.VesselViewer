@@ -62,9 +62,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BundleIndex.cs" />
+    <Compile Include="AssetBundleCache.cs" />
+    <Compile Include="AssetBundleCacheFactory.cs" />
+    <Compile Include="DeferredAssetBundleLoader.cs" />
+    <Compile Include="IAssetBundleCache.cs" />
     <Compile Include="EditorAxis.cs" />
     <Compile Include="EditorLockManager.cs" />
+    <Compile Include="IAssetBundleLoader.cs" />
     <Compile Include="KrsDebugHelper.cs" />
     <Compile Include="KrsUtils.cs" />
     <Compile Include="ShaderMaterial.cs" />

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using KSP.IO;
 using UnityEngine;
 
@@ -6,7 +8,26 @@ namespace VesselViewer
 {
     internal class KrsUtils
     {
-        public static BundleIndex Index = new BundleIndex();
+        public static IAssetBundleCache AssetBundle;
+        public static Dictionary<string, Material> MaterialCache;
+
+        public static IEnumerator LoadBundle()
+        {
+            // asynchronously load the asset bundle shaders into a cache
+            Debug.Log("KVV: Factory init");
+            var factory = new AssetBundleCacheFactory();
+            var loadRoutine = factory.LoadBundle("VesselViewer/Shaders/vesselviewer");
+            Debug.Log("KVV: Load routine loop");
+
+            while (loadRoutine.MoveNext())
+            {
+                yield return loadRoutine.Current;
+            }
+
+            Debug.Log("KVV: Load routine complete");
+            AssetBundle = factory.Result;
+            MaterialCache = AssetBundle.CreateMaterials();
+        }
 
         public static Type FindType(string qualifiedTypeName)
         {
@@ -25,10 +46,7 @@ namespace VesselViewer
 
         public static string GetResourceString(string name)
         {
-            if (File.Exists<KrsUtils>(name))
-                return File.ReadAllText<KrsUtils>(name);
-            //return Properties.Resources.ResourceManager.GetString(name);
-            return string.Empty;
+            return File.Exists<KrsUtils>(name) ? File.ReadAllText<KrsUtils>(name) : string.Empty;
         }
 
         public static Vector3 ProjectVectorToPlane(Vector3 v, Vector3 planeNormal)

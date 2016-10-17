@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using KSP.UI.Screens;
 using UnityEngine;
@@ -6,7 +8,7 @@ using UnityEngine;
 namespace VesselViewer
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    internal class VesselShotUi : MonoBehaviour
+    public class VesselShotUi : MonoBehaviour
     {
         private EditorAxis axis;
         private readonly VesselShot control = new VesselShot();
@@ -21,7 +23,7 @@ namespace VesselViewer
         private bool visible;
         private Vector2 windowScrollPos;
         private Rect windowSize;
-
+        
         private bool IsOnEditor()
         {
             return (HighLogic.LoadedScene == GameScenes.EDITOR) || HighLogic.LoadedSceneIsEditor;
@@ -29,6 +31,9 @@ namespace VesselViewer
 
         public void Awake()
         {
+            Debug.Log("KVV: Starting load coroutine");
+            StartCoroutine(KrsUtils.LoadBundle());
+
             windowSize = new Rect(256f, 50f, 300f, Screen.height - 50f);
             string[] configAppend = {"Part Config"};
             shaderTabsNames = control.Effects.Keys.ToArray();
@@ -38,6 +43,8 @@ namespace VesselViewer
 
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
         }
+
+        
 
         private void Start()
         {
@@ -162,7 +169,7 @@ namespace VesselViewer
 
         private void GUIButtons()
         {
-            control.uiBoolVals["saveTextureEvent"] = false;
+            control.UiBoolVals["saveTextureEvent"] = false;
             if (guiStyleButtonAlert == null)
             {
                 guiStyleButtonAlert = new GUIStyle(GUI.skin.button);
@@ -183,7 +190,7 @@ namespace VesselViewer
 
             if (GUILayout.Button("Screenshot"))
             {
-                control.uiBoolVals["saveTextureEvent"] = true;
+                control.UiBoolVals["saveTextureEvent"] = true;
                 control.Update();
                 control.Execute();
             }
@@ -193,61 +200,61 @@ namespace VesselViewer
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
             if (GUILayout.RepeatButton("ᴖ", GUILayout.Width(34), GUILayout.Height(34)))
-                control.direction = Quaternion.AngleAxis(-0.4f, control.Camera.transform.right)*control.direction;
+                control.Direction = Quaternion.AngleAxis(-0.4f, control.Camera.transform.right)*control.Direction;
             if (GUILayout.RepeatButton("ϲ", GUILayout.Width(34), GUILayout.Height(34)))
                 control.RotateShip(-1f);
             if (GUILayout.RepeatButton("▲", GUILayout.Width(34), GUILayout.Height(34)))
-                control.position.y -= 0.1f;
+                control.Position.y -= 0.1f;
             if (GUILayout.RepeatButton("ᴐ", GUILayout.Width(34), GUILayout.Height(34)))
                 control.RotateShip(1f);
             if (GUILayout.RepeatButton("+", GUILayout.Width(34), GUILayout.Height(34)))
-                control.position.z += 0.1f;
+                control.Position.z += 0.1f;
             if (GUILayout.Button("RESET", guiStyleButtonAlert, GUILayout.Width(34), GUILayout.Height(34)))
             {
-                control.direction = Vector3.forward;
-                control.position = Vector3.zero;
+                control.Direction = Vector3.forward;
+                control.Position = Vector3.zero;
             }
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             if (GUILayout.RepeatButton("ᴗ", GUILayout.Width(34), GUILayout.Height(34)))
-                control.direction = Quaternion.AngleAxis(0.4f, control.Camera.transform.right)*control.direction;
+                control.Direction = Quaternion.AngleAxis(0.4f, control.Camera.transform.right)*control.Direction;
             if (GUILayout.RepeatButton("◄", GUILayout.Width(34), GUILayout.Height(34)))
-                control.position.x += 0.1f;
+                control.Position.x += 0.1f;
             if (GUILayout.RepeatButton("▼", GUILayout.Width(34), GUILayout.Height(34)))
-                control.position.y += 0.1f;
+                control.Position.y += 0.1f;
             if (GUILayout.RepeatButton("►", GUILayout.Width(34), GUILayout.Height(34)))
-                control.position.x -= 0.1f;
+                control.Position.x -= 0.1f;
             if (GUILayout.RepeatButton("-", GUILayout.Width(34), GUILayout.Height(34)))
-                control.position.z -= 0.1f;
+                control.Position.z -= 0.1f;
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
 
             GUILayout.BeginVertical();
             control.Orthographic = GUILayout.Toggle(control.Orthographic, "Orthographic", GUILayout.ExpandWidth(true));
             GUILayout.BeginHorizontal();
-            control.uiFloatVals["shadowVal"] = 0f;
+            control.UiFloatVals["shadowVal"] = 0f;
             GUILayout.Label("Shadow", GUILayout.Width(46f));
             GUILayout.Space(3f);
-            control.uiFloatVals["shadowValPercent"] = GUILayout.HorizontalSlider(
-                control.uiFloatVals["shadowValPercent"], 0f, 300f, GUILayout.Width(153f));
+            control.UiFloatVals["shadowValPercent"] = GUILayout.HorizontalSlider(
+                control.UiFloatVals["shadowValPercent"], 0f, 300f, GUILayout.Width(153f));
             GUILayout.Space(1f);
-            GUILayout.Label(control.uiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));
+            GUILayout.Label(control.UiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));
                 //GUILayout.Width(50f),
-            control.uiFloatVals["shadowVal"] = control.uiFloatVals["shadowValPercent"]*1000f;
+            control.UiFloatVals["shadowVal"] = control.UiFloatVals["shadowValPercent"]*1000f;
                 //1000 is the max shadow val.  Looks like it takes a float so thats the max? 
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("File Quality", GUILayout.Width(68f));
             GUILayout.Space(1f);
-            control.uiFloatVals["imgPercent"] = GUILayout.HorizontalSlider(control.uiFloatVals["imgPercent"] - 1, 0f, 8f,
+            control.UiFloatVals["imgPercent"] = GUILayout.HorizontalSlider(control.UiFloatVals["imgPercent"] - 1, 0f, 8f,
                 GUILayout.Width(140f));
             GUILayout.Space(1f);
-            var disW = Math.Floor((control.uiFloatVals["imgPercent"] + 1)*control.calculatedWidth).ToString();
-            var disH = Math.Floor((control.uiFloatVals["imgPercent"] + 1)*control.calculatedHeight).ToString();
+            var disW = Math.Floor((control.UiFloatVals["imgPercent"] + 1)*control.CalculatedWidth).ToString();
+            var disH = Math.Floor((control.UiFloatVals["imgPercent"] + 1)*control.CalculatedHeight).ToString();
             GUILayout.Label(
-                string.Format("{0:0.#}", control.uiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH,
+                string.Format("{0:0.#}", control.UiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH,
                 GUILayout.Width(110f)); //GUILayout.Width(50f),
-            control.uiFloatVals["imgPercent"] = control.uiFloatVals["imgPercent"] + 1;
+            control.UiFloatVals["imgPercent"] = control.UiFloatVals["imgPercent"] + 1;
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
@@ -334,7 +341,7 @@ namespace VesselViewer
         private void GUITabView()
         {
             GUILayout.BeginVertical();
-            control.uiBoolVals["canPreview"] = GUILayout.Toggle(control.uiBoolVals["canPreview"], "Auto-Preview",
+            control.UiBoolVals["canPreview"] = GUILayout.Toggle(control.UiBoolVals["canPreview"], "Auto-Preview",
                 GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
             var r = GUILayoutUtility.GetRect(0, windowSize.width, 0, windowSize.height);

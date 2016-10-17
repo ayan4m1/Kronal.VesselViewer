@@ -12,7 +12,7 @@ namespace VesselViewer
         {
             if (!mat)
             {
-                mat = new Material(KrsUtils.Index.GetShaderById("KVV/Lines/Colored Blended"));
+                mat = new Material(KrsUtils.AssetBundle.FindShader("KSP/Emissive/Bumped Specular"));
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 mat.shader.hideFlags = HideFlags.HideAndDontSave;
             }
