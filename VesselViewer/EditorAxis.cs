@@ -24,7 +24,7 @@ namespace VesselViewer
             evo = (EditorVesselOverlays) FindObjectOfType(typeof(EditorVesselOverlays));
 
 #if DEBUG
-            Debug.Log("KVV: KVrEditorAxis Awake");
+            Debug.Log("KVV: EditorAxis Awake");
 #endif
         }
 

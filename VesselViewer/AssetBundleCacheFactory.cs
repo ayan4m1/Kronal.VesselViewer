@@ -19,7 +19,7 @@ namespace VesselViewer
                 yield return _loadRoutine.Current;
             }
 
-            // if done loading, we can precache the materials
+            // if done loading, return the cache via our public field
             var cache = Loader.GetResult();
             Result = cache;
         }

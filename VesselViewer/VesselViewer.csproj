@@ -69,7 +69,7 @@
     <Compile Include="EditorAxis.cs" />
     <Compile Include="EditorLockManager.cs" />
     <Compile Include="IAssetBundleLoader.cs" />
-    <Compile Include="KrsDebugHelper.cs" />
+    <Compile Include="KrsExtensions.cs" />
     <Compile Include="KrsUtils.cs" />
     <Compile Include="ShaderMaterial.cs" />
     <Compile Include="VesselElementViewOption.cs" />
