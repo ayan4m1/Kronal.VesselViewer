@@ -1,0 +1,10 @@
+﻿{
+    "spec_version" : 1,
+    "identifier"   : "KronalVesselViewer",
+    "$kref"        : "#/ckan/github/ayan4m1/Kronal.VesselViewer",
+    "license"      : "unrestricted",
+    "ksp_version"  : "1.2.0",
+    "resources": {
+        "homepage": "https://github.com/bigorangemachine/ksp-kronalutils"
+    }
+}
