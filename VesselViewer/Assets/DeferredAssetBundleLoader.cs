@@ -3,7 +3,7 @@ using System.Linq;
 using KSPAssets.Loaders;
 using UnityEngine;
 
-namespace VesselViewer
+namespace VesselViewer.Assets
 {
     public class DeferredAssetBundleLoader : IAssetBundleLoader
     {

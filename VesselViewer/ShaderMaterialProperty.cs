@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace VesselViewer
 {
-    internal abstract class ShaderMaterialProperty
+    public abstract class ShaderMaterialProperty
     {
         public readonly Material Material;
 

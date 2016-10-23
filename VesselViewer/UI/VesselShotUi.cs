@@ -2,14 +2,18 @@
 using System.Linq;
 using KSP.UI.Screens;
 using UnityEngine;
+using VesselViewer.Container;
+using VesselViewer.Services;
 
 namespace VesselViewer
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class VesselShotUi : MonoBehaviour
     {
+        private AppContainer _application;
+
         private EditorAxis axis;
-        private readonly VesselShot control = new VesselShot();
+        private readonly VesselShot control;
         private GUIStyle guiStyleButtonAlert;
         private readonly string inputLockIdent = "KVV-EditorLock";
         private ApplicationLauncherButton KVVButton;
@@ -22,6 +26,11 @@ namespace VesselViewer
         private Vector2 windowScrollPos;
         private Rect windowSize;
 
+        public VesselShotUi()
+        {
+            _application = new AppContainer();
+        }
+
         private bool IsOnEditor()
         {
             return (HighLogic.LoadedScene == GameScenes.EDITOR) || HighLogic.LoadedSceneIsEditor;
@@ -29,13 +38,15 @@ namespace VesselViewer
 
         public void Awake()
         {
+            var effectService = _application.Container.Resolve<IEffectService>();
+            //var assetService = _application.Container.Resolve
+
             Debug.Log("KVV: Starting load coroutine");
             StartCoroutine(KrsUtils.LoadBundle());
 
             windowSize = new Rect(256f, 50f, 300f, Screen.height - 50f);
-            string[] configAppend = {"Part Config"};
-            shaderTabsNames = control.Effects.Keys.ToArray();
-            shaderTabsNames = shaderTabsNames.Concat(configAppend).ToArray();
+            shaderTabsNames = effectService.GetNames().Concat(new[] {"Part Config"}).ToArray();
+
             control.Config.onApply += ConfigApplied;
             control.Config.onRevert += ConfigReverted;
 
@@ -165,7 +176,6 @@ namespace VesselViewer
 
         private void GUIButtons()
         {
-            control.UiBoolVals["saveTextureEvent"] = false;
             if (guiStyleButtonAlert == null)
             {
                 guiStyleButtonAlert = new GUIStyle(GUI.skin.button);
@@ -178,7 +188,8 @@ namespace VesselViewer
                 guiStyleButtonAlert.alignment = TextAnchor.MiddleCenter;
             }
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Offset View"))
+
+            if (GUILayout.Button("Toggle Offset"))
                 control.Explode();
 
             if (GUILayout.Button("Revert"))
@@ -186,9 +197,8 @@ namespace VesselViewer
 
             if (GUILayout.Button("Screenshot"))
             {
-                control.UiBoolVals["saveTextureEvent"] = true;
                 control.Update();
-                control.Execute();
+                control.SaveTexture("front_");
             }
             GUILayout.EndHorizontal();
 
@@ -236,21 +246,18 @@ namespace VesselViewer
             GUILayout.Space(1f);
             GUILayout.Label(control.UiFloatVals["shadowValPercent"].ToString("F"), GUILayout.Width(50f));
             //GUILayout.Width(50f),
-            control.UiFloatVals["shadowVal"] = control.UiFloatVals["shadowValPercent"]*1000f;
+            control.UiFloatVals["shadowVal"] = control.UiFloatVals["shadowValPercent"] * 1000f;
             //1000 is the max shadow val.  Looks like it takes a float so thats the max? 
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("File Quality", GUILayout.Width(68f));
             GUILayout.Space(1f);
             control.UiFloatVals["imgPercent"] = GUILayout.HorizontalSlider(control.UiFloatVals["imgPercent"] - 1, 0f, 8f,
-                GUILayout.Width(140f));
+                GUILayout.Width(140f)) + 1f;
             GUILayout.Space(1f);
-            var disW = Math.Floor((control.UiFloatVals["imgPercent"] + 1)*control.CalculatedWidth).ToString();
-            var disH = Math.Floor((control.UiFloatVals["imgPercent"] + 1)*control.CalculatedHeight).ToString();
-            GUILayout.Label(
-                string.Format("{0:0.#}", control.UiFloatVals["imgPercent"].ToString("F")) + "\n" + disW + " x " + disH,
-                GUILayout.Width(110f)); //GUILayout.Width(50f),
-            control.UiFloatVals["imgPercent"] = control.UiFloatVals["imgPercent"] + 1;
+            var disW = Math.Floor(control.UiFloatVals["imgPercent"] * control.CalculatedWidth);
+            var disH = Math.Floor(control.UiFloatVals["imgPercent"] * control.CalculatedHeight);
+            GUILayout.Label($"{control.UiFloatVals["imgPercent"]:0.#}\n{disW} x {disH}", GUILayout.Width(110f));
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
@@ -343,7 +350,7 @@ namespace VesselViewer
             var r = GUILayoutUtility.GetRect(0, windowSize.width, 0, windowSize.height);
             if (Event.current.type == EventType.Repaint)
                 orthoViewRect = r;
-            var texture = control.Texture();
+            var texture = control.Texture;
             if (texture)
                 GUI.DrawTexture(orthoViewRect, texture, ScaleMode.ScaleToFit, false); // ALPHA BLENDING?! HEY HEY
         }
@@ -418,13 +425,17 @@ namespace VesselViewer
             Debug.Log("KVV: OnDestroy");
 #endif
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
-            if (axis != null)
-                DestroyObject(axis);
 
             if (KVVButton != null)
                 ApplicationLauncher.Instance.RemoveModApplication(KVVButton);
 
-            Resources.UnloadUnusedAssets(); //fix memory leak?
+            if (axis != null)
+                DestroyObject(axis);
+
+            if (control != null)
+                DestroyObject(control);
+
+            Resources.UnloadUnusedAssets();
         }
     }
 }

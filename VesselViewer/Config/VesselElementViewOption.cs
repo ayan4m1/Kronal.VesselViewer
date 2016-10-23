@@ -1,6 +1,6 @@
 using System;
 
-namespace VesselViewer
+namespace VesselViewer.Config
 {
     internal class VesselElementViewOption
     {

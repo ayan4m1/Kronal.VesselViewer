@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace VesselViewer
+namespace VesselViewer.Assets
 {
     public interface IAssetBundleLoader
     {

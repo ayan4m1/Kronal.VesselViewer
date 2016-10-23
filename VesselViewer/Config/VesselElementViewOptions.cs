@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace VesselViewer
+namespace VesselViewer.Config
 {
     internal class VesselElementViewOptions
     {

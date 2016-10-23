@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 
-namespace VesselViewer
+namespace VesselViewer.Assets
 {
-    class AssetBundleCacheFactory
+    internal class AssetBundleCacheFactory
     {
         private static readonly IAssetBundleLoader Loader = new DeferredAssetBundleLoader();
 

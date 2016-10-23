@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace VesselViewer
 {
-    internal class ShaderMaterial
+    public class ShaderMaterial
     {
         private readonly List<ShaderMaterialProperty> _properties;
         private readonly Dictionary<string, ShaderMaterialProperty> _propertiesByName;
@@ -15,6 +15,23 @@ namespace VesselViewer
             Enabled = true;
             _properties = new List<ShaderMaterialProperty>();
             _propertiesByName = new Dictionary<string, ShaderMaterialProperty>();
+        }
+
+        public bool TryInitialize()
+        {
+            if (Material != null)
+            {
+                return true;
+            }
+
+            Material mat;
+            var result = KrsUtils.MaterialCache.TryGetValue(FullName, out mat);
+            if (result)
+            {
+                Material = mat;
+            }
+
+            return result;
         }
 
         public Material Material { get; private set; }

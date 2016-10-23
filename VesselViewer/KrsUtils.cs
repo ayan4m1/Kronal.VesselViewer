@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using KSP.IO;
 using UnityEngine;
+using VesselViewer.Assets;
 
 namespace VesselViewer
 {

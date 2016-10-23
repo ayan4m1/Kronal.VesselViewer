@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using KAS;
 using Keramzit;
+using UniLinq;
 using UnityEngine;
 
-namespace VesselViewer
+namespace VesselViewer.Config
 {
     internal class VesselViewConfig
     {
@@ -15,7 +16,7 @@ namespace VesselViewer
         private readonly Dictionary<Transform, Vector3> positions;
         public float procFairingOffset;
         public Dictionary<Part, bool> procFairings;
-        private IShipconstruct ship;
+        private IShipconstruct _ship;
         private readonly Dictionary<Renderer, bool> visibility;
 
         //constructor
@@ -100,10 +101,8 @@ namespace VesselViewer
         public void buildModList()
         {
             //https://github.com/Xaiier/Kreeper/blob/master/Kreeper/Kreeper.cs#L92-L94 <- Thanks Xaiier!
-            foreach (var a in AssemblyLoader.loadedAssemblies)
+            foreach (var name in AssemblyLoader.loadedAssemblies.Select(asm => asm.name))
             {
-                var name = a.name;
-//UnityEngine.Debug.Log(string.Format("KVV: name: {0}", name));//future debubging
                 installedMods.Add(name);
             }
         }
@@ -133,7 +132,7 @@ namespace VesselViewer
                     visibility[r] = r.enabled;
                 else if (!toggleOn && visibility.ContainsKey(r))
                     r.enabled = visibility[r];
-            foreach (var part in ship.Parts)
+            foreach (var part in _ship.Parts)
             {
                 if (toggleOn)
                     freezed[part] = part.frozen;
@@ -160,13 +159,15 @@ namespace VesselViewer
 
         public void Execute(IShipconstruct ship)
         {
-            this.ship = ship;
+            _ship = ship;
             StateToggle(false);
             StateToggle(true);
+
             foreach (var part in ship.Parts)
             {
                 foreach (var c in Config)
                     c.Apply(part);
+
                 part.frozen = true;
             }
 

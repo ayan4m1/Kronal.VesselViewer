@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace VesselViewer
+namespace VesselViewer.Assets
 {
     public class AssetBundleCache : IAssetBundleCache
     {
