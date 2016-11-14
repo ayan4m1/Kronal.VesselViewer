@@ -47,8 +47,8 @@ namespace VesselViewer
             windowSize = new Rect(256f, 50f, 300f, Screen.height - 50f);
             shaderTabsNames = effectService.GetNames().Concat(new[] {"Part Config"}).ToArray();
 
-            control.Config.onApply += ConfigApplied;
-            control.Config.onRevert += ConfigReverted;
+            control.Config.OnApply += ConfigApplied;
+            control.Config.OnRevert += ConfigReverted;
 
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
         }
