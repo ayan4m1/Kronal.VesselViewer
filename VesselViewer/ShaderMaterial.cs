@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace VesselViewer
 {
+    /// <summary>
+    /// Encapsulates the shader uniforms that are provided by a compiled shader.
+    /// </summary>
     public class ShaderMaterial
     {
         private readonly List<ShaderMaterialProperty> _properties;
